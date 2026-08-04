@@ -5,7 +5,7 @@
 # Pairs with AuthService — validates JWT tokens issued by AuthService.
 # =============================================================================
 
-PROJECT_NAME="MyService"
+PROJECT_NAME="ApiService"
 
 echo "============================================="
 echo "🚀 Service API Generator"

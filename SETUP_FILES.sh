@@ -4,7 +4,7 @@
 # Setup Files — Copies all implementation files to correct locations
 # =============================================================================
 
-PROJECT_NAME="MyService"
+PROJECT_NAME="ApiService"
 TEMPLATES="./templates"
 
 echo "============================================="
@@ -54,7 +54,7 @@ cp ${TEMPLATES}/API/Middleware/*.cs    ${PROJECT_NAME}.API/Middleware/
 cp ${TEMPLATES}/API/Filters/*.cs      ${PROJECT_NAME}.API/Filters/
 cp ${TEMPLATES}/API/Program.cs        ${PROJECT_NAME}.API/Program.cs
 cp ${TEMPLATES}/API/appsettings.json  ${PROJECT_NAME}.API/appsettings.json
-cp ${TEMPLATES}/API/MyService.API.csproj ${PROJECT_NAME}.API/${PROJECT_NAME}.API.csproj
+cp ${TEMPLATES}/API/ApiService.API.csproj ${PROJECT_NAME}.API/${PROJECT_NAME}.API.csproj
 
 echo ""
 echo "✅ All files set up!"

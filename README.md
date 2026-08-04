@@ -8,12 +8,12 @@ chmod +x CREATE_MY_SERVICE.sh SETUP_FILES.sh
 ./SETUP_FILES.sh
 
 # Configure
-nano MyService.API/appsettings.json
+nano ApiService.API/appsettings.json
 # → Update: DefaultConnection (your database)
 # → Update: SecretKey (PASTE_SAME_SECRET_KEY_AS_AUTHSERVICE)
 
 # Migrate + run
-cd MyService.API
+cd ApiService.API
 
 dotnet remove package Microsoft.AspNetCore.OpenApi
 dotnet remove package Microsoft.OpenApi
@@ -22,7 +22,7 @@ dotnet remove package Microsoft.OpenApi
 dotnet restore --no-cache
 
 # Then migrate
-dotnet ef migrations add InitialCreate --project ../AuthService.Infrastructure
+dotnet ef migrations add InitialCreate --project ../ApiService.Infrastructure
 
-dotnet ef database update --project ../AuthService.Infrastructure
+dotnet ef database update --project ../ApiService.Infrastructure
 dotnet run --launch-profile https

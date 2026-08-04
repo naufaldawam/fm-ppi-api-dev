@@ -84,9 +84,9 @@ DbSet<Order> Orders { get; set; }
 
 ### Step 8 — Migration
 ```bash
-cd MyService.API
-dotnet ef migrations add AddOrders --project ../MyService.Infrastructure
-dotnet ef database update --project ../MyService.Infrastructure
+cd ApiService.API
+dotnet ef migrations add AddOrders --project ../ApiService.Infrastructure
+dotnet ef database update --project ../ApiService.Infrastructure
 ```
 
 ---
