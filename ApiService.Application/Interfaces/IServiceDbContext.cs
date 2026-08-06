@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ApiService.Domain.Entities;
+using ApiService.Application.DTOs;
 
 namespace ApiService.Application.Interfaces
 {
@@ -16,6 +17,11 @@ namespace ApiService.Application.Interfaces
         // Example: DbSet<Order> Orders { get; set; }
         // ===================================
         DbSet<Product> Products { get; set; }
+        DbSet<FeedbackEntity> Feedbacks { get; set; }
+
+        // users
+        DbSet<GetDataUsers> Users { get; set; }
+        DbSet<GetDataUserRolesApprover> UserRolesApprover { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

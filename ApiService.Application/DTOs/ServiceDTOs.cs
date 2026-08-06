@@ -193,4 +193,61 @@ namespace ApiService.Application.DTOs
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
+
+    public class GetDataUsers
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool? IsUserGiveFeedback { get; set; }
+        public bool? ShowFeedback { get; set; }
+        public int? TotalUserHasFeedback { get; set; }
+    }
+
+    public class GetDataUserRolesApprover
+    {
+        public string UserId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+
+    }
+    
+    public class CreateFeedbackRequest
+    {
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
+    }
+
+    public class UpdateFeedbackStatusRequest
+    {
+        public string UserId { get; set; } = string.Empty;
+    }
+
+    public class FeedbackSummaryResponse
+    {
+        public int TotalFeedback { get; set; }
+        public decimal AverageRating { get; set; }
+        public int RatingTrendThisMonth { get; set; }
+        public int RatingTrendLastMonth { get; set; }
+    }
+
+    public class FeedbackFilterRequest
+    {
+        public int? Rating { get; set; }
+        public bool? WithComment { get; set; }
+
+        public int Page { get; set; } = 1;
+        public int Size { get; set; } = 10;
+        public string? SearchTerm { get; set; }
+    }
+
+    public class FeedbackResponse
+    {
+        public string Id { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
+        public string UserName { get; set; } = string.Empty;
+    }
 }

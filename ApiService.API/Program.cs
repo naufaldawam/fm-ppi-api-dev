@@ -12,6 +12,10 @@ using ApiService.Infrastructure.Services;
 using ApiService.Application.Services;
 using ApiService.Application.Interfaces;
 using ApiService.API.Middleware;
+using ApiService.Application.Configurations;
+using ApiService.Application.DTOs.Configs;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +30,8 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
 
 // ===================================
 // DATABASE
