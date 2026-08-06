@@ -93,3 +93,207 @@ dotnet run --launch-profile https
 
 </Project>
 ```
+
+## 3. Commit Message Guideline
+
+Gunakan format berikut untuk setiap commit:
+
+```text
+<type>(<scope>): <description>
+```
+
+Contoh:
+
+```text
+feat(auth): add refresh token endpoint
+fix(api): resolve decimal parsing issue
+docs(readme): update installation guide
+refactor(service): simplify token validation
+chore(ci): remove unused pipeline configuration
+```
+
+---
+
+### `feat`
+
+Digunakan untuk menambahkan fitur baru.
+
+**Contoh:**
+
+```text
+feat(auth): add refresh token endpoint
+feat(user): add user profile page
+```
+
+---
+
+### `fix`
+
+Digunakan untuk memperbaiki bug atau kesalahan pada sistem.
+
+**Contoh:**
+
+```text
+fix(login): resolve session timeout issue
+fix(api): return correct status code
+```
+
+---
+
+### `docs`
+
+Digunakan untuk mengubah dokumentasi tanpa mengubah logika program.
+
+**Contoh:**
+
+```text
+docs(readme): update installation steps
+docs(api): add authentication examples
+```
+
+---
+
+### `refactor`
+
+Digunakan untuk merapikan, memindahkan, atau menyederhanakan kode tanpa mengubah perilaku aplikasi.
+
+**Contoh:**
+
+```text
+refactor(service): simplify validation logic
+refactor(repository): optimize query structure
+```
+
+---
+
+### `style`
+
+Digunakan untuk perubahan terkait format kode.
+
+Contohnya:
+
+* Perbaikan indentasi.
+* Penambahan atau penghapusan spasi.
+* Penyesuaian format kode.
+
+**Contoh:**
+
+```text
+style(ui): fix code formatting
+style(api): reorder import statements
+```
+
+---
+
+### `test`
+
+Digunakan untuk menambahkan atau memperbarui pengujian.
+
+**Contoh:**
+
+```text
+test(auth): add unit tests for login service
+test(api): update integration tests
+```
+
+---
+
+### `chore`
+
+Digunakan untuk pekerjaan pemeliharaan yang tidak berkaitan langsung dengan fitur atau perbaikan bug.
+
+Contohnya:
+
+* Menghapus folder yang tidak digunakan.
+* Memperbarui dependensi.
+* Memperbarui konfigurasi proyek.
+* Membersihkan file sementara.
+
+**Contoh:**
+
+```text
+chore: remove unused folder
+chore: update dependencies
+chore: clean temporary files
+```
+
+---
+
+### `build`
+
+Digunakan untuk perubahan yang berkaitan dengan proses build.
+
+**Contoh:**
+
+```text
+build: update Docker image
+build: modify build script
+```
+
+---
+
+### `ci`
+
+Digunakan untuk perubahan yang berkaitan dengan proses CI/CD.
+
+**Contoh:**
+
+```text
+ci(gitlab): update deployment pipeline
+ci(jenkins): modify deployment stages
+```
+
+---
+
+### `perf`
+
+Digunakan untuk meningkatkan performa aplikasi.
+
+**Contoh:**
+
+```text
+perf(query): optimize database query
+perf(cache): reduce response time
+```
+
+---
+
+## Scope
+
+Bagian `scope` bersifat opsional.
+
+Contoh:
+
+```text
+feat(auth): add refresh token endpoint
+fix(api): handle null values
+refactor(service): simplify business logic
+docs(readme): update documentation
+```
+
+---
+
+## Rules
+
+* Gunakan huruf kecil.
+* Gunakan kalimat singkat dan jelas.
+* Hindari penggunaan tanda titik (`.`) di akhir kalimat.
+* Gunakan kata kerja seperti `add`, `update`, `remove`, `fix`, atau `optimize`.
+* Satu commit hanya untuk satu perubahan.
+
+---
+
+## Recommended Examples
+
+```text
+feat(auth): add JWT refresh token support
+fix(decimal): resolve culture parsing issue
+docs(readme): update installation guide
+refactor(service): simplify validation logic
+style(ui): fix code formatting
+test(api): add unit tests
+chore: remove unused folder
+build(docker): update base image
+ci(gitlab): update deployment pipeline
+perf(database): optimize indexing strategy
+```
