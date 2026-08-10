@@ -1,93 +1,299 @@
-# api-fm
+# FM (Fleet Management)
 
+## 1. Ringkasan Proyek
 
+### 1.1. Nama Proyek
+FM (Fleet Management)
 
-## Getting started
+### 1.2. Latar Belakang
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Dalam era digitalisasi dan meningkatnya tuntutan kepatuhan terhadap regulasi, perusahaan dituntut untuk mampu menyediakan data yang akurat, transparan, dan real-time, khususnya terkait pelaporan pajak natura. Namun, dalam praktiknya, proses pengumpulan dan pengolahan data tersebut masih sering dilakukan secara manual, tersebar, dan kurang terintegrasi. Hal ini menyebabkan tingginya potensi kesalahan, keterlambatan pelaporan, serta kesulitan dalam melakukan monitoring penggunaan sumber daya perusahaan, terutama pada operasional kendaraan pekerja.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Kebutuhan akan sistem yang terintegrasi menjadi semakin penting, terutama untuk mengelola data operasional kendaraan yang melibatkan banyak pihak, seperti driver dan admin. Saat ini, data penggunaan bahan bakar minyak (BBM) seringkali tidak terdokumentasi dengan baik, baik dari sisi jumlah, waktu pengisian, maupun bukti transaksi. Selain itu, proses validasi data yang masih manual juga menambah beban kerja serta berisiko terhadap ketidaksesuaian data yang berdampak pada pelaporan pajak.
 
-## Add your files
+Oleh karena itu, diperlukan sebuah aplikasi atau sistem Fleet Management (FM) yang mampu mengakomodasi kebutuhan tersebut secara menyeluruh. Sistem ini memungkinkan driver untuk melakukan input data BBM secara langsung melalui aplikasi mobile, kapanpun dan dimanapun, lengkap dengan detail kendaraan serta bukti nota pengisian. Selanjutnya, data tersebut akan melalui proses validasi oleh admin untuk memastikan kesesuaian antara input dan bukti transaksi sebelum disetujui.
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+Dengan data yang telah tervalidasi, sistem dapat secara otomatis mengolah dan menghasilkan laporan terkait pajak natura, termasuk komponen pendukung seperti penggunaan e-toll dan biaya lembur driver. Melalui sistem ini, perusahaan diharapkan dapat memperoleh data yang cepat, akurat, dan terintegrasi, sehingga mendukung pengambilan keputusan yang lebih baik serta memastikan kepatuhan terhadap regulasi yang berlaku.
 
+### 1.3. Tujuan Bisnis & Manfaat
+
+- Membangun sistem Fleet Management (FM) yang terintegrasi untuk pengelolaan data operasional kendaraan secara digital dan terpusat.
+- Mempermudah proses pencatatan penggunaan BBM oleh driver melalui aplikasi mobile secara real-time, lengkap dengan bukti transaksi.
+- Menyediakan mekanisme validasi data yang akurat melalui proses verifikasi oleh admin untuk memastikan kesesuaian data input dan dokumen pendukung.
+- Mengotomatisasi penyajian laporan pajak natura berdasarkan data operasional yang telah tervalidasi.
+- Meningkatkan akurasi, transparansi, dan kecepatan dalam penyediaan data untuk kebutuhan pelaporan dan pengambilan keputusan.
+- Mendukung kepatuhan perusahaan terhadap regulasi terkait pajak natura.
+
+---
+
+## 2. Setup & Instalasi
+
+> Catatan: langkah di bawah ini mengikuti struktur boilerplate. Ganti setiap kemunculan `ApiService` dengan nama service yang sesuai (misalnya `FleetService`) sebelum dijalankan, agar konsisten dengan penamaan proyek FM.
+
+```bash
+# Extract
+tar -xzf AuthBoilerplate.tar.gz
+cd AuthBoilerplate
+
+# Generate + setup
+chmod +x CREATE_MY_SERVICE.sh SETUP_FILES.sh
+./CREATE_MY_SERVICE.sh
+./SETUP_FILES.sh
+
+# Configure
+nano ApiService.API/appsettings.json
+# → Update: DefaultConnection (your database)
+# → Update: SecretKey (PASTE_SAME_SECRET_KEY_AS_AUTHSERVICE)
+
+# Migrate + run
+cd ApiService.API
+
+dotnet remove package Microsoft.AspNetCore.OpenApi
+dotnet remove package Microsoft.OpenApi
+
+# Clean and restore
+dotnet restore --no-cache
+
+# Then migrate
+dotnet ef migrations add InitialCreate --project ../ApiService.Infrastructure
+
+dotnet ef database update --project ../ApiService.Infrastructure
+dotnet run --launch-profile https
 ```
-cd existing_repo
-git remote add origin https://gitlab.air.id/publik/ppi/api-fm.git
-git branch -M main
-git push -uf origin main
+
+### Project File Reference (`ApiService.API.csproj`)
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- NOTE: No Microsoft.AspNetCore.OpenApi - conflicts with Swashbuckle -->
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApiService.Application\ApiService.Application.csproj" />
+    <ProjectReference Include="..\ApiService.Infrastructure\ApiService.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
 ```
 
-## Integrate with your tools
+## 3. Commit Message Guideline
 
-* [Set up project integrations](https://gitlab.air.id/publik/ppi/api-fm/-/settings/integrations)
+Gunakan format berikut untuk setiap commit:
 
-## Collaborate with your team
+```text
+<type>(<scope>): <description>
+```
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Contoh:
 
-## Test and Deploy
+```text
+feat(auth): add refresh token endpoint
+fix(api): resolve decimal parsing issue
+docs(readme): update installation guide
+refactor(service): simplify token validation
+chore(ci): remove unused pipeline configuration
+```
 
-Use the built-in continuous integration in GitLab.
+---
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+### `feat`
 
-***
+Digunakan untuk menambahkan fitur baru.
 
-# Editing this README
+**Contoh:**
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```text
+feat(auth): add refresh token endpoint
+feat(user): add user profile page
+```
 
-## Suggestions for a good README
+---
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### `fix`
 
-## Name
-Choose a self-explaining name for your project.
+Digunakan untuk memperbaiki bug atau kesalahan pada sistem.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+**Contoh:**
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+```text
+fix(login): resolve session timeout issue
+fix(api): return correct status code
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+---
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+### `docs`
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Digunakan untuk mengubah dokumentasi tanpa mengubah logika program.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+**Contoh:**
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+```text
+docs(readme): update installation steps
+docs(api): add authentication examples
+```
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+---
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### `refactor`
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+Digunakan untuk merapikan, memindahkan, atau menyederhanakan kode tanpa mengubah perilaku aplikasi.
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+**Contoh:**
 
-## License
-For open source projects, say how it is licensed.
+```text
+refactor(service): simplify validation logic
+refactor(repository): optimize query structure
+```
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+---
+
+### `style`
+
+Digunakan untuk perubahan terkait format kode.
+
+Contohnya:
+
+* Perbaikan indentasi.
+* Penambahan atau penghapusan spasi.
+* Penyesuaian format kode.
+
+**Contoh:**
+
+```text
+style(ui): fix code formatting
+style(api): reorder import statements
+```
+
+---
+
+### `test`
+
+Digunakan untuk menambahkan atau memperbarui pengujian.
+
+**Contoh:**
+
+```text
+test(auth): add unit tests for login service
+test(api): update integration tests
+```
+
+---
+
+### `chore`
+
+Digunakan untuk pekerjaan pemeliharaan yang tidak berkaitan langsung dengan fitur atau perbaikan bug.
+
+Contohnya:
+
+* Menghapus folder yang tidak digunakan.
+* Memperbarui dependensi.
+* Memperbarui konfigurasi proyek.
+* Membersihkan file sementara.
+
+**Contoh:**
+
+```text
+chore: remove unused folder
+chore: update dependencies
+chore: clean temporary files
+```
+
+---
+
+### `build`
+
+Digunakan untuk perubahan yang berkaitan dengan proses build.
+
+**Contoh:**
+
+```text
+build: update Docker image
+build: modify build script
+```
+
+---
+
+### `ci`
+
+Digunakan untuk perubahan yang berkaitan dengan proses CI/CD.
+
+**Contoh:**
+
+```text
+ci(gitlab): update deployment pipeline
+ci(jenkins): modify deployment stages
+```
+
+---
+
+### `perf`
+
+Digunakan untuk meningkatkan performa aplikasi.
+
+**Contoh:**
+
+```text
+perf(query): optimize database query
+perf(cache): reduce response time
+```
+
+---
+
+## Scope
+
+Bagian `scope` bersifat opsional.
+
+Contoh:
+
+```text
+feat(auth): add refresh token endpoint
+fix(api): handle null values
+refactor(service): simplify business logic
+docs(readme): update documentation
+```
+
+---
+
+## Rules
+
+* Gunakan huruf kecil.
+* Gunakan kalimat singkat dan jelas.
+* Hindari penggunaan tanda titik (`.`) di akhir kalimat.
+* Gunakan kata kerja seperti `add`, `update`, `remove`, `fix`, atau `optimize`.
+* Satu commit hanya untuk satu perubahan.
+
+---
+
+## Recommended Examples
+
+```text
+feat(auth): add JWT refresh token support
+fix(decimal): resolve culture parsing issue
+docs(readme): update installation guide
+refactor(service): simplify validation logic
+style(ui): fix code formatting
+test(api): add unit tests
+chore: remove unused folder
+build(docker): update base image
+ci(gitlab): update deployment pipeline
+perf(database): optimize indexing strategy
+```
