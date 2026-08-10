@@ -1,0 +1,41 @@
+stages:
+  - build
+  - migrate
+  - deploy
+
+variables:
+  # SERVICE
+  SERVICE: ppi-api-fm
+  # HARBOR
+  HARBOR_HOST: "10.14.204.78:80"
+  HARBOR_USERNAME: "admin"
+  HARBOR_PASSWORD: "P@ssw0rdNyaHarbor#5757"
+  # DOCKER
+  # DOCKER_IMAGE: $CI_REGISTRY/$CI_PROJECT_PATH:$CI_COMMIT_REF_NAME
+  DOCKER_IMAGE: $HARBOR_HOST/$CI_PROJECT_PATH:$CI_COMMIT_REF_NAME
+
+default:
+  tags:
+    - shell
+
+build:
+  stage: build
+  before_script:
+    # - docker login $CI_REGISTRY -u gitlab-ci-token -p $CI_JOB_TOKEN
+    - docker login $HARBOR_HOST -u $HARBOR_USERNAME -p $HARBOR_PASSWORD
+  script:
+    - docker build --no-cache -t $DOCKER_IMAGE -f Dockerfile .
+    - docker push $DOCKER_IMAGE
+  only:
+    - main
+    - tags
+
+deploy_development:
+  stage: deploy
+  before_script:
+    - export KUBECONFIG=~/.kube/k8s-staging
+  script:
+    - kubectl set image deployment/$SERVICE $SERVICE=$DOCKER_IMAGE -n development
+    - kubectl rollout restart deploy/$SERVICE -n development
+  only:
+    - main
