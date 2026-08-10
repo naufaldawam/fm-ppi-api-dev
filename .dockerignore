@@ -1,0 +1,28 @@
+# Git
+.git
+.gitignore
+.gitlab-ci.yml
+
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE / OS
+.vs/
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+logs/
+**/logs/
+
+# Docs & misc
+README.md
+*.md
+
+# NuGet cache
+*.nupkg
+packages/
