@@ -1,34 +1,26 @@
-# =========================================================
-# AuthService.API — Single-stage Docker image (SDK .NET 10)
-# Build & run menggunakan image SDK (berisi runtime + compiler)
-# =========================================================
-FROM mcr.microsoft.com/dotnet/sdk:10.0
-
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Salin semua .csproj sesuai folder asli untuk optimasi cache restore
-COPY AuthService.API/AuthService.API.csproj AuthService.API/
-COPY AuthService.Application/AuthService.Application.csproj AuthService.Application/
-COPY AuthService.Domain/AuthService.Domain.csproj AuthService.Domain/
-COPY AuthService.Infrastructure/AuthService.Infrastructure.csproj AuthService.Infrastructure/
+COPY ApiService.slnx ./
+COPY ApiService.API/ApiService.API.csproj ApiService.API/
+COPY ApiService.Application/ApiService.Application.csproj ApiService.Application/
+COPY ApiService.Domain/ApiService.Domain.csproj ApiService.Domain/
+COPY ApiService.Infrastructure/ApiService.Infrastructure.csproj ApiService.Infrastructure/
 
-# Restore dependensi (cache layer saat .csproj tidak berubah)
-RUN dotnet restore AuthService.API/AuthService.API.csproj
+RUN dotnet restore ApiService.API/ApiService.API.csproj
 
-# Salin seluruh source code
 COPY . .
 
-# Publish aplikasi ke /app/publish
-RUN dotnet publish AuthService.API/AuthService.API.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish ApiService.API/ApiService.API.csproj \
+    -c Release \
+    -o /app/publish \
+    --no-restore
 
-# =========================================================
-# Runtime environment
-# =========================================================
-ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_HTTP_PORTS=8080
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-ENV ASPNETCORE_ENVIRONMENT=Production
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+WORKDIR /app
 
-WORKDIR /app/publish
+COPY --from=build /app/publish .
+
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "AuthService.API.dll"]
+
+ENTRYPOINT ["dotnet", "ApiService.API.dll"]
