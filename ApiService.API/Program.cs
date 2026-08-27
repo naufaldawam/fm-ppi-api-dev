@@ -121,13 +121,6 @@ builder.Services.Configure<StorageConfig>(
 
 builder.Services.AddScoped<IProductService, ProductService>();
 
-builder.Services.AddScoped<
-    IBroadcastFileService,
-    BroadcastFileService>();
-
-builder.Services.AddScoped<
-    IBroadcastService,
-    BroadcastService>();
 
 // ===================================
 // VALIDATION
