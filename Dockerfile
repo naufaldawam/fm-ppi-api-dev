@@ -15,6 +15,13 @@ RUN dotnet publish ApiService.API/ApiService.API.csproj \
     -c Release \
     -o /app/publish \
     --no-restore
+    
+# ==========================
+# Runtime Stage
+# ==========================
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+WORKDIR /app
 
 ENV ASPNETCORE_URLS=http://+:8080
 
