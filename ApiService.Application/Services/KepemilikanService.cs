@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
+using System.Collections.Generic;
 
 namespace ApiService.Application.Services
 {
     public interface IKepemilikanService
     {
         Task<ApiResponse<PagedResponse<KepemilikanDto>>> GetAllAsync(KepemilikanFilterRequest filter);
+        Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<KepemilikanDto>> GetByIdAsync(string id);
         Task<ApiResponse<KepemilikanDto>> CreateAsync(CreateKepemilikanRequest request, string userId);
         Task<ApiResponse<KepemilikanDto>> UpdateAsync(string id, UpdateKepemilikanRequest request, string userId);
@@ -53,6 +55,24 @@ namespace ApiService.Application.Services
                 PageNumber = filter.Page,
                 PageSize = filter.PageSize
             });
+        }
+
+        public async Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Kepemilikans.Where(k => !k.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(k => k.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(k => k.Name.Contains(search));
+
+            var items = await query
+                .OrderBy(k => k.Name)
+                .Select(k => new MasterLookupDto { Id = k.Id, Name = k.Name })
+                .ToListAsync();
+
+            return ApiResponse<List<MasterLookupDto>>.SuccessResponse(items);
         }
 
         public async Task<ApiResponse<KepemilikanDto>> GetByIdAsync(string id)

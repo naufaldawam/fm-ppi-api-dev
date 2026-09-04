@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
+using System.Collections.Generic;
 
 namespace ApiService.Application.Services
 {
     public interface IVendorService
     {
         Task<ApiResponse<PagedResponse<VendorDto>>> GetAllAsync(VendorFilterRequest filter);
+        Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<VendorDto>> GetByIdAsync(string id);
         Task<ApiResponse<VendorDto>> CreateAsync(CreateVendorRequest request, string userId);
         Task<ApiResponse<VendorDto>> UpdateAsync(string id, UpdateVendorRequest request, string userId);
@@ -53,6 +55,24 @@ namespace ApiService.Application.Services
                 PageNumber = filter.Page,
                 PageSize = filter.PageSize
             });
+        }
+
+        public async Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Vendors.Where(v => !v.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(v => v.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(v => v.Name.Contains(search));
+
+            var items = await query
+                .OrderBy(v => v.Name)
+                .Select(v => new MasterLookupDto { Id = v.Id, Name = v.Name })
+                .ToListAsync();
+
+            return ApiResponse<List<MasterLookupDto>>.SuccessResponse(items);
         }
 
         public async Task<ApiResponse<VendorDto>> GetByIdAsync(string id)
