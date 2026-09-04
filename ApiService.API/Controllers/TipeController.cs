@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Master data Tipe (dropdown di form Kendaraan)</summary>
     [ApiController]
-    [Route("api/tipe")]
+    [Route("tipe")]
     [Authorize]
     [Produces("application/json")]
     public class TipeController : ControllerBase

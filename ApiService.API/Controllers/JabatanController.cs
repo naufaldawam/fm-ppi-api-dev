@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Master data Jabatan (dropdown di form Pekerja)</summary>
     [ApiController]
-    [Route("api/jabatan")]
+    [Route("jabatan")]
     [Authorize]
     [Produces("application/json")]
     public class JabatanController : ControllerBase

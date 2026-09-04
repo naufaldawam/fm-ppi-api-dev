@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Master data Kepemilikan (dropdown di form Kendaraan)</summary>
     [ApiController]
-    [Route("api/kepemilikan")]
+    [Route("kepemilikan")]
     [Authorize]
     [Produces("application/json")]
     public class KepemilikanController : ControllerBase

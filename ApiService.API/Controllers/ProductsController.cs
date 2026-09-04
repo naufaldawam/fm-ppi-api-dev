@@ -17,7 +17,7 @@ namespace ApiService.API.Controllers
     ///   [RequirePermission("products.read")]    — must have specific permission from AuthService JWT
     /// </summary>
     [ApiController]
-    [Route("api/products")]
+    [Route("products")]
     [Authorize]
     [Produces("application/json")]
     public class ProductsController : ControllerBase

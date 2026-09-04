@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Data Master > Pekerja (master independen)</summary>
     [ApiController]
-    [Route("api/pekerja")]
+    [Route("pekerja")]
     [Authorize]
     [Produces("application/json")]
     public class PekerjaController : ControllerBase
