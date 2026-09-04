@@ -250,4 +250,82 @@ namespace ApiService.Application.DTOs
         public string? Comment { get; set; }
         public string UserName { get; set; } = string.Empty;
     }
+
+        // ===================================
+    // JABATAN (Master Data)
+    // ===================================
+    public class CreateJabatanRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateJabatanRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class JabatanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class JabatanFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // PEKERJA (Data Master > Pekerja) - master independen
+    // ===================================
+    public class CreatePekerjaRequest
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+    }
+
+    public class UpdatePekerjaRequest
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class PekerjaDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        // Read-only: di-assign lewat menu RF.ID terpisah, bisa kosong kalau belum di-assign
+        public List<string> RfIds { get; set; } = new();
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class PekerjaFilterRequest
+    {
+        public string? Search { get; set; }
+        public string? JabatanId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
 }

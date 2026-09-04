@@ -22,6 +22,8 @@ namespace ApiService.Application.Interfaces
         // users
         DbSet<GetDataUsers> Users { get; set; }
         DbSet<GetDataUserRolesApprover> UserRolesApprover { get; set; }
+        DbSet<MasterJabatan> Jabatans { get; set; }
+        DbSet<Pekerja> Pekerjas { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

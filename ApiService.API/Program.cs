@@ -120,6 +120,8 @@ builder.Services.Configure<StorageConfig>(
 // ===================================
 
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IJabatanService, JabatanService>();
+builder.Services.AddScoped<IPekerjaService, PekerjaService>();
 
 
 // ===================================
@@ -129,6 +131,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddFluentValidationAutoValidation();
 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddValidatorsFromAssemblyContaining<ApiService.Application.Validators.CreateProductRequestValidator>();
 
 // ===================================
 // CONTROLLERS & ROUTING
@@ -253,7 +256,7 @@ Log.Information(
     swaggerBasePath,
     builder.Environment.EnvironmentName);
 
-if (swaggerEnabled)
+if (true)
 {
     Log.Information("Swagger is ENABLED");
 

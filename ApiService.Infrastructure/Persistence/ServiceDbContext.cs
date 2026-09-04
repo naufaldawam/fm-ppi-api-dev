@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ApiService.Domain.Entities;
 using ApiService.Application.Interfaces;
 using ApiService.Application.DTOs;
@@ -16,6 +20,8 @@ namespace ApiService.Infrastructure.Persistence
         // view ke table user
         public DbSet<GetDataUsers> Users { get; set; }
         public DbSet<GetDataUserRolesApprover> UserRolesApprover { get; set; }
+        public DbSet<MasterJabatan> Jabatans { get; set; }
+        public DbSet<Pekerja> Pekerjas { get; set; }
 
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
@@ -51,6 +57,45 @@ namespace ApiService.Infrastructure.Persistence
             {
                 entity.HasNoKey();
                 entity.ToView("vw_user_roles");
+            });
+
+            modelBuilder.Entity<MasterJabatan>(entity =>
+            {
+                entity.ToTable("MasterJabatans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            // ------------------------------------------------------------
+            // PEKERJA (Data Master > Pekerja)
+            // ------------------------------------------------------------
+            var rfIdsComparer = new ValueComparer<List<string>>(
+                (a, b) => (a ?? new List<string>()).SequenceEqual(b ?? new List<string>()),
+                v => v == null ? 0 : v.Aggregate(0, (hash, s) => HashCode.Combine(hash, s)),
+                v => v == null ? new List<string>() : v.ToList());
+
+            modelBuilder.Entity<Pekerja>(entity =>
+            {
+                entity.ToTable("Pekerjas");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.NoPekerja).IsUnique();
+                entity.HasIndex(e => e.NamaPekerja);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.Jabatan)
+                    .WithMany()
+                    .HasForeignKey(e => e.JabatanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // RfIds (List<string>) disimpan sebagai JSON di 1 kolom nvarchar(max)
+                entity.Property(e => e.RfIds)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v ?? new List<string>(), (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
+                    .Metadata.SetValueComparer(rfIdsComparer);
             });
         }
     }

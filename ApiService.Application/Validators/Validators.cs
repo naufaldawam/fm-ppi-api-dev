@@ -26,4 +26,50 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.Category).MaximumLength(100).When(x => x.Category != null);
         }
     }
+
+        // ===================================
+    // JABATAN VALIDATORS
+    // ===================================
+    public class CreateJabatanRequestValidator : AbstractValidator<CreateJabatanRequest>
+    {
+        public CreateJabatanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateJabatanRequestValidator : AbstractValidator<UpdateJabatanRequest>
+    {
+        public UpdateJabatanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
+    // PEKERJA VALIDATORS
+    // ===================================
+    public class CreatePekerjaRequestValidator : AbstractValidator<CreatePekerjaRequest>
+    {
+        public CreatePekerjaRequestValidator()
+        {
+            RuleFor(x => x.NoPekerja).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NopekHome).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NopekHost).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NamaPekerja).NotEmpty().MaximumLength(255);
+            RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Jabatan harus dipilih");
+        }
+    }
+
+    public class UpdatePekerjaRequestValidator : AbstractValidator<UpdatePekerjaRequest>
+    {
+        public UpdatePekerjaRequestValidator()
+        {
+            RuleFor(x => x.NoPekerja).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NopekHome).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NopekHost).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NamaPekerja).NotEmpty().MaximumLength(255);
+            RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Jabatan harus dipilih");
+        }
+    }
 }
