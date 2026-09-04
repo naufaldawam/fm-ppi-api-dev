@@ -590,6 +590,61 @@ namespace ApiService.Application.DTOs
         public int PageSize { get; set; } = 10;
     }
 
+    // ===================================
+    // DRIVER (Data Master > Driver)
+    // Referensi: Vendor, Atasan (Pekerja)
+    // ===================================
+    public class CreateDriverRequest
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoHp { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string VendorId { get; set; } = string.Empty;
+        public string AtasanId { get; set; } = string.Empty;
+    }
+
+    public class UpdateDriverRequest
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoHp { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string VendorId { get; set; } = string.Empty;
+        public string AtasanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class DriverDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoHp { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+
+        public string VendorId { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+
+        public string AtasanId { get; set; } = string.Empty;
+        public string AtasanNama { get; set; } = string.Empty;
+        public string JabatanAtasan { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class DriverFilterRequest
+    {
+        /// <summary>Cari berdasarkan No.Pekerja, Nama Driver, No.HP, atau Email.</summary>
+        public string? Search { get; set; }
+        public string? VendorId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
     /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).
     /// Dipakai bareng oleh Jabatan, Vendor, Tipe, BahanBakar, Kepemilikan.</summary>
     public class MasterLookupDto

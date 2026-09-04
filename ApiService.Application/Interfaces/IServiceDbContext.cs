@@ -30,6 +30,7 @@ namespace ApiService.Application.Interfaces
         DbSet<MasterVendor> Vendors { get; set; }
         DbSet<RfId> RfIds { get; set; }
         DbSet<Kendaraan> Kendaraans { get; set; }
+        DbSet<Driver> Drivers { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

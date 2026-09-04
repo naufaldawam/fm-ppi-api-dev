@@ -28,6 +28,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MasterVendor> Vendors { get; set; }
         public DbSet<Kendaraan> Kendaraans { get; set; }
         public DbSet<RfId> RfIds { get; set; }
+        public DbSet<Driver> Drivers { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -202,6 +203,29 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Kendaraan)
                     .WithMany()
                     .HasForeignKey(e => e.KendaraanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // DRIVER (Data Master > Driver)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<Driver>(entity =>
+            {
+                entity.ToTable("Drivers");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.NoPekerja).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.Vendor)
+                    .WithMany()
+                    .HasForeignKey(e => e.VendorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Atasan)
+                    .WithMany()
+                    .HasForeignKey(e => e.AtasanId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

@@ -202,4 +202,33 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.KendaraanId).NotEmpty().WithMessage("Nopol harus dipilih");
         }
     }
+
+    // ===================================
+    // DRIVER VALIDATORS
+    // ===================================
+    public class CreateDriverRequestValidator : AbstractValidator<CreateDriverRequest>
+    {
+        public CreateDriverRequestValidator()
+        {
+            RuleFor(x => x.NoPekerja).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NamaDriver).NotEmpty().MaximumLength(150);
+            RuleFor(x => x.NoHp).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(150);
+            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
+            RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
+        }
+    }
+
+    public class UpdateDriverRequestValidator : AbstractValidator<UpdateDriverRequest>
+    {
+        public UpdateDriverRequestValidator()
+        {
+            RuleFor(x => x.NoPekerja).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.NamaDriver).NotEmpty().MaximumLength(150);
+            RuleFor(x => x.NoHp).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(150);
+            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
+            RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
+        }
+    }
 }
