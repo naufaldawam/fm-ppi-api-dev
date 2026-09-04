@@ -453,6 +453,14 @@ namespace ApiService.Application.DTOs
         public int PageSize { get; set; } = 10;
     }
 
+    /// <summary>DTO ringan untuk dropdown/lookup Pekerja (tanpa pagination).</summary>
+    public class PekerjaLookupDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+    }
+
         // ===================================
     // KENDARAAN (Data Master > Kendaraan)
     // Referensi: Tipe, BahanBakar, Vendor, Kepemilikan, Jabatan (alokasi jabatan),
@@ -580,5 +588,13 @@ namespace ApiService.Application.DTOs
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).
+    /// Dipakai bareng oleh Jabatan, Vendor, Tipe, BahanBakar, Kepemilikan.</summary>
+    public class MasterLookupDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
     }
 }

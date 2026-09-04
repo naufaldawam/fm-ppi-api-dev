@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
+using System.Collections.Generic;
 
 namespace ApiService.Application.Services
 {
     public interface IPekerjaService
     {
         Task<ApiResponse<PagedResponse<PekerjaDto>>> GetAllAsync(PekerjaFilterRequest filter);
+        Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<PekerjaDto>> GetByIdAsync(string id);
         Task<ApiResponse<PekerjaDto>> CreateAsync(CreatePekerjaRequest request, string userId);
         Task<ApiResponse<PekerjaDto>> UpdateAsync(string id, UpdatePekerjaRequest request, string userId);
@@ -61,6 +63,31 @@ namespace ApiService.Application.Services
                 PageNumber = filter.Page,
                 PageSize = filter.PageSize
             });
+        }
+
+        public async Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Pekerjas.Where(p => !p.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(p => p.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(p =>
+                    p.NamaPekerja.Contains(search) ||
+                    p.NoPekerja.Contains(search));
+
+            var items = await query
+                .OrderBy(p => p.NamaPekerja)
+                .Select(p => new PekerjaLookupDto
+                {
+                    Id = p.Id,
+                    NoPekerja = p.NoPekerja,
+                    NamaPekerja = p.NamaPekerja
+                })
+                .ToListAsync();
+
+            return ApiResponse<List<PekerjaLookupDto>>.SuccessResponse(items);
         }
 
         public async Task<ApiResponse<PekerjaDto>> GetByIdAsync(string id)

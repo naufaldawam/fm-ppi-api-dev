@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
+using System.Collections.Generic;
 
 namespace ApiService.Application.Services
 {
     public interface IBahanBakarService
     {
         Task<ApiResponse<PagedResponse<BahanBakarDto>>> GetAllAsync(BahanBakarFilterRequest filter);
+        Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<BahanBakarDto>> GetByIdAsync(string id);
         Task<ApiResponse<BahanBakarDto>> CreateAsync(CreateBahanBakarRequest request, string userId);
         Task<ApiResponse<BahanBakarDto>> UpdateAsync(string id, UpdateBahanBakarRequest request, string userId);
@@ -53,6 +55,24 @@ namespace ApiService.Application.Services
                 PageNumber = filter.Page,
                 PageSize = filter.PageSize
             });
+        }
+
+        public async Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.BahanBakars.Where(b => !b.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(b => b.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(b => b.Name.Contains(search));
+
+            var items = await query
+                .OrderBy(b => b.Name)
+                .Select(b => new MasterLookupDto { Id = b.Id, Name = b.Name })
+                .ToListAsync();
+
+            return ApiResponse<List<MasterLookupDto>>.SuccessResponse(items);
         }
 
         public async Task<ApiResponse<BahanBakarDto>> GetByIdAsync(string id)

@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
+using System.Collections.Generic;
 
 namespace ApiService.Application.Services
 {
     public interface IJabatanService
     {
         Task<ApiResponse<PagedResponse<JabatanDto>>> GetAllAsync(JabatanFilterRequest filter);
+        Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<JabatanDto>> GetByIdAsync(string id);
         Task<ApiResponse<JabatanDto>> CreateAsync(CreateJabatanRequest request, string userId);
         Task<ApiResponse<JabatanDto>> UpdateAsync(string id, UpdateJabatanRequest request, string userId);
@@ -53,6 +55,24 @@ namespace ApiService.Application.Services
                 PageNumber = filter.Page,
                 PageSize = filter.PageSize
             });
+        }
+
+        public async Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Jabatans.Where(j => !j.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(j => j.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(j => j.Name.Contains(search));
+
+            var items = await query
+                .OrderBy(j => j.Name)
+                .Select(j => new MasterLookupDto { Id = j.Id, Name = j.Name })
+                .ToListAsync();
+
+            return ApiResponse<List<MasterLookupDto>>.SuccessResponse(items);
         }
 
         public async Task<ApiResponse<JabatanDto>> GetByIdAsync(string id)

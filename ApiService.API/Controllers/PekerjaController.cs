@@ -36,6 +36,14 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("lookup")]
+        [RequirePermission("pekerja.read")]
+        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] bool activeOnly = true)
+        {
+            var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
+            return Ok(result);
+        }
+
         [HttpGet("{id}")]
         [RequirePermission("pekerja.read")]
         public async Task<IActionResult> GetById(string id)
