@@ -149,7 +149,7 @@ namespace ApiService.Application.Validators
         }
     }
 
-        // ===================================
+    // ===================================
     // KENDARAAN VALIDATORS
     // ===================================
     public class CreateKendaraanRequestValidator : AbstractValidator<CreateKendaraanRequest>
@@ -177,6 +177,29 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
             RuleFor(x => x.KepemilikanId).NotEmpty().WithMessage("Kepemilikan harus dipilih");
             RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Alokasi jabatan harus dipilih");
+        }
+    }
+
+    // ===================================
+    // RF.ID VALIDATORS
+    // ===================================
+    public class CreateRfIdRequestValidator : AbstractValidator<CreateRfIdRequest>
+    {
+        public CreateRfIdRequestValidator()
+        {
+            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Nama pekerja harus dipilih");
+            RuleFor(x => x.KendaraanId).NotEmpty().WithMessage("Nopol harus dipilih");
+        }
+    }
+
+    public class UpdateRfIdRequestValidator : AbstractValidator<UpdateRfIdRequest>
+    {
+        public UpdateRfIdRequestValidator()
+        {
+            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Nama pekerja harus dipilih");
+            RuleFor(x => x.KendaraanId).NotEmpty().WithMessage("Nopol harus dipilih");
         }
     }
 }

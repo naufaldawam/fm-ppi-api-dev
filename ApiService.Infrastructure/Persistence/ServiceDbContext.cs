@@ -27,6 +27,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MasterTipe> Tipes { get; set; }
         public DbSet<MasterVendor> Vendors { get; set; }
         public DbSet<Kendaraan> Kendaraans { get; set; }
+        public DbSet<RfId> RfIds { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -180,6 +181,28 @@ namespace ApiService.Infrastructure.Persistence
                     .HasForeignKey(e => e.PekerjaId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .IsRequired(false);
+            });
+
+                        // ------------------------------------------------------------
+            // RF.ID (Data Master > RF.ID)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<RfId>(entity =>
+            {
+                entity.ToTable("RfIds");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.RfIdCode).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Kendaraan)
+                    .WithMany()
+                    .HasForeignKey(e => e.KendaraanId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

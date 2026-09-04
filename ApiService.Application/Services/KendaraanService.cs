@@ -11,10 +11,12 @@ namespace ApiService.Application.Services
     public interface IKendaraanService
     {
         Task<ApiResponse<PagedResponse<KendaraanDto>>> GetAllAsync(KendaraanFilterRequest filter);
+        Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<KendaraanDto>> GetByIdAsync(string id);
         Task<ApiResponse<KendaraanDto>> CreateAsync(CreateKendaraanRequest request, string userId);
         Task<ApiResponse<KendaraanDto>> UpdateAsync(string id, UpdateKendaraanRequest request, string userId);
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
+        
     }
 
     public class KendaraanService : IKendaraanService
@@ -80,6 +82,28 @@ namespace ApiService.Application.Services
             });
         }
 
+        public async Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Kendaraans
+                .Where(k => !k.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(k => k.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(k => k.NomorPolisi.Contains(search));
+
+            var items = await query
+                .OrderBy(k => k.NomorPolisi)
+                .Select(k => new KendaraanLookupDto
+                {
+                    Id = k.Id,
+                    NomorPolisi = k.NomorPolisi
+                })
+                .ToListAsync();
+
+            return ApiResponse<List<KendaraanLookupDto>>.SuccessResponse(items);
+        }
         public async Task<ApiResponse<KendaraanDto>> GetByIdAsync(string id)
         {
             var kendaraan = await BaseQuery().FirstOrDefaultAsync(k => k.Id == id);

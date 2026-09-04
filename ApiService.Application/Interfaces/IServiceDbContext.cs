@@ -28,6 +28,7 @@ namespace ApiService.Application.Interfaces
         DbSet<MasterBahanBakar> BahanBakars { get; set; }
         DbSet<MasterKepemilikan> Kepemilikans { get; set; }
         DbSet<MasterVendor> Vendors { get; set; }
+        DbSet<RfId> RfIds { get; set; }
         DbSet<Kendaraan> Kendaraans { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
