@@ -22,7 +22,10 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<GetDataUserRolesApprover> UserRolesApprover { get; set; }
         public DbSet<MasterJabatan> Jabatans { get; set; }
         public DbSet<Pekerja> Pekerjas { get; set; }
-
+        public DbSet<MasterBahanBakar> BahanBakars { get; set; }
+        public DbSet<MasterKepemilikan> Kepemilikans { get; set; }
+        public DbSet<MasterTipe> Tipes { get; set; }
+        public DbSet<MasterVendor> Vendors { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -62,6 +65,42 @@ namespace ApiService.Infrastructure.Persistence
             modelBuilder.Entity<MasterJabatan>(entity =>
             {
                 entity.ToTable("MasterJabatans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<MasterBahanBakar>(entity =>
+            {
+                entity.ToTable("MasterBahanBakars");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<MasterKepemilikan>(entity =>
+            {
+                entity.ToTable("MasterKepemilikans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<MasterTipe>(entity =>
+            {
+                entity.ToTable("MasterTipes");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<MasterVendor>(entity =>
+            {
+                entity.ToTable("MasterVendors");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Name).IsUnique();
                 entity.HasIndex(e => e.IsDeleted);

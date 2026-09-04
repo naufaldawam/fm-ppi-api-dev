@@ -27,7 +27,7 @@ namespace ApiService.Application.Validators
         }
     }
 
-        // ===================================
+    // ===================================
     // JABATAN VALIDATORS
     // ===================================
     public class CreateJabatanRequestValidator : AbstractValidator<CreateJabatanRequest>
@@ -41,6 +41,82 @@ namespace ApiService.Application.Validators
     public class UpdateJabatanRequestValidator : AbstractValidator<UpdateJabatanRequest>
     {
         public UpdateJabatanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
+    // TIPE VALIDATORS
+    // ===================================
+    public class CreateTipeRequestValidator : AbstractValidator<CreateTipeRequest>
+    {
+        public CreateTipeRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateTipeRequestValidator : AbstractValidator<UpdateTipeRequest>
+    {
+        public UpdateTipeRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
+    // BAHAN BAKAR VALIDATORS
+    // ===================================
+    public class CreateBahanBakarRequestValidator : AbstractValidator<CreateBahanBakarRequest>
+    {
+        public CreateBahanBakarRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateBahanBakarRequestValidator : AbstractValidator<UpdateBahanBakarRequest>
+    {
+        public UpdateBahanBakarRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
+    // KEPEMILIKAN VALIDATORS
+    // ===================================
+    public class CreateKepemilikanRequestValidator : AbstractValidator<CreateKepemilikanRequest>
+    {
+        public CreateKepemilikanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateKepemilikanRequestValidator : AbstractValidator<UpdateKepemilikanRequest>
+    {
+        public UpdateKepemilikanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
+    // VENDOR VALIDATORS
+    // ===================================
+    public class CreateVendorRequestValidator : AbstractValidator<CreateVendorRequest>
+    {
+        public CreateVendorRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateVendorRequestValidator : AbstractValidator<UpdateVendorRequest>
+    {
+        public UpdateVendorRequestValidator()
         {
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
         }

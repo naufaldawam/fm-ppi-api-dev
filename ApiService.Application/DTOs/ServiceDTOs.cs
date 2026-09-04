@@ -251,7 +251,7 @@ namespace ApiService.Application.DTOs
         public string UserName { get; set; } = string.Empty;
     }
 
-        // ===================================
+    // ===================================
     // JABATAN (Master Data)
     // ===================================
     public class CreateJabatanRequest
@@ -275,6 +275,130 @@ namespace ApiService.Application.DTOs
     }
 
     public class JabatanFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // TIPE (Master Data)
+    // ===================================
+    public class CreateTipeRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateTipeRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class TipeDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class TipeFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // BAHAN BAKAR (Master Data)
+    // ===================================
+    public class CreateBahanBakarRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateBahanBakarRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class BahanBakarDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class BahanBakarFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // KEPEMILIKAN (Master Data)
+    // ===================================
+    public class CreateKepemilikanRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateKepemilikanRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class KepemilikanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class KepemilikanFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // VENDOR (Master Data)
+    // ===================================
+    public class CreateVendorRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateVendorRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class VendorDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class VendorFilterRequest
     {
         public string? Search { get; set; }
         public bool? IsActive { get; set; }
