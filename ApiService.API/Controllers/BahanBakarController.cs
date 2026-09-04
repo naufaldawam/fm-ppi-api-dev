@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Master data BahanBakar (dropdown di form Kendaraan)</summary>
     [ApiController]
-    [Route("api/bahanbakar")]
+    [Route("bahanbakar")]
     [Authorize]
     [Produces("application/json")]
     public class BahanBakarController : ControllerBase

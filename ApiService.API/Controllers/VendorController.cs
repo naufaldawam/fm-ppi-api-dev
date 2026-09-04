@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Master data Vendor (dropdown di form Kendaraan)</summary>
     [ApiController]
-    [Route("api/vendor")]
+    [Route("vendor")]
     [Authorize]
     [Produces("application/json")]
     public class VendorController : ControllerBase

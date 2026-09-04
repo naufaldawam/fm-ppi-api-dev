@@ -12,7 +12,7 @@ namespace ApiService.API.Controllers
     /// Create/Update/Delete otomatis mensinkronkan ke Pekerja.RfIds.
     /// </summary>
     [ApiController]
-    [Route("api/rfid")]
+    [Route("rfid")]
     [Authorize]
     [Produces("application/json")]
     public class RfIdController : ControllerBase

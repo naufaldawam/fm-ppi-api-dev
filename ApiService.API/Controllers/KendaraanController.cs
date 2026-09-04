@@ -12,7 +12,7 @@ namespace ApiService.API.Controllers
     /// Jabatan (alokasi jabatan) dan Pekerja (pejabat pemegang - opsional).
     /// </summary>
     [ApiController]
-    [Route("api/kendaraan")]
+    [Route("kendaraan")]
     [Authorize]
     [Produces("application/json")]
     public class KendaraanController : ControllerBase

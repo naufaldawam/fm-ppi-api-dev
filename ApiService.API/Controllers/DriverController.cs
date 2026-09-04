@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Data Master > Driver. Terhubung ke Vendor dan Atasan (Pekerja).</summary>
     [ApiController]
-    [Route("api/driver")]
+    [Route("driver")]
     [Authorize]
     [Produces("application/json")]
     public class DriverController : ControllerBase
