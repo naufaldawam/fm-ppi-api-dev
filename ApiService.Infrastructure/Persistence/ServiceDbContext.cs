@@ -26,6 +26,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MasterKepemilikan> Kepemilikans { get; set; }
         public DbSet<MasterTipe> Tipes { get; set; }
         public DbSet<MasterVendor> Vendors { get; set; }
+        public DbSet<Kendaraan> Kendaraans { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -135,6 +136,50 @@ namespace ApiService.Infrastructure.Persistence
                         v => JsonSerializer.Serialize(v ?? new List<string>(), (JsonSerializerOptions?)null),
                         v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>())
                     .Metadata.SetValueComparer(rfIdsComparer);
+            });
+
+                        // ------------------------------------------------------------
+            // KENDARAAN (Data Master > Kendaraan)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<Kendaraan>(entity =>
+            {
+                entity.ToTable("Kendaraans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.NomorPolisi).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.Tipe)
+                    .WithMany()
+                    .HasForeignKey(e => e.TipeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.BahanBakar)
+                    .WithMany()
+                    .HasForeignKey(e => e.BahanBakarId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Vendor)
+                    .WithMany()
+                    .HasForeignKey(e => e.VendorId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Kepemilikan)
+                    .WithMany()
+                    .HasForeignKey(e => e.KepemilikanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Jabatan)
+                    .WithMany()
+                    .HasForeignKey(e => e.JabatanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Pejabat pemegang kendaraan - opsional (nullable FK)
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
             });
         }
     }
