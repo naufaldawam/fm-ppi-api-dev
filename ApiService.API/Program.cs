@@ -121,6 +121,10 @@ builder.Services.Configure<StorageConfig>(
 
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IJabatanService, JabatanService>();
+builder.Services.AddScoped<ITipeService, TipeService>();
+builder.Services.AddScoped<IBahanBakarService, BahanBakarService>();
+builder.Services.AddScoped<IKepemilikanService, KepemilikanService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IPekerjaService, PekerjaService>();
 
 
