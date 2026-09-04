@@ -452,4 +452,78 @@ namespace ApiService.Application.DTOs
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
+
+        // ===================================
+    // KENDARAAN (Data Master > Kendaraan)
+    // Referensi: Tipe, BahanBakar, Vendor, Kepemilikan, Jabatan (alokasi jabatan),
+    // Pekerja (pejabat pemegang - opsional)
+    // ===================================
+    public class CreateKendaraanRequest
+    {
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string TipeId { get; set; } = string.Empty;
+        public string BahanBakarId { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string VendorId { get; set; } = string.Empty;
+        public string KepemilikanId { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string? PekerjaId { get; set; }
+    }
+
+    public class UpdateKendaraanRequest
+    {
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string TipeId { get; set; } = string.Empty;
+        public string BahanBakarId { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string VendorId { get; set; } = string.Empty;
+        public string KepemilikanId { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string? PekerjaId { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class KendaraanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+
+        public string TipeId { get; set; } = string.Empty;
+        public string TipeName { get; set; } = string.Empty;
+
+        public string BahanBakarId { get; set; } = string.Empty;
+        public string BahanBakarName { get; set; } = string.Empty;
+
+        public string Merek { get; set; } = string.Empty;
+
+        public string VendorId { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+
+        public string KepemilikanId { get; set; } = string.Empty;
+        public string KepemilikanName { get; set; } = string.Empty;
+
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+
+        public string? PekerjaId { get; set; }
+        public string? PekerjaName { get; set; }
+
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class KendaraanFilterRequest
+    {
+        /// <summary>Cari berdasarkan Nomor Polisi atau Merek Kendaraan.</summary>
+        public string? Search { get; set; }
+        public string? TipeId { get; set; }
+        public string? BahanBakarId { get; set; }
+        public string? VendorId { get; set; }
+        public string? KepemilikanId { get; set; }
+        public string? JabatanId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
 }

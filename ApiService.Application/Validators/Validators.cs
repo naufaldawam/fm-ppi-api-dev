@@ -148,4 +148,35 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Jabatan harus dipilih");
         }
     }
+
+        // ===================================
+    // KENDARAAN VALIDATORS
+    // ===================================
+    public class CreateKendaraanRequestValidator : AbstractValidator<CreateKendaraanRequest>
+    {
+        public CreateKendaraanRequestValidator()
+        {
+            RuleFor(x => x.NomorPolisi).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.TipeId).NotEmpty().WithMessage("Tipe harus dipilih");
+            RuleFor(x => x.BahanBakarId).NotEmpty().WithMessage("Bahan bakar harus dipilih");
+            RuleFor(x => x.Merek).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
+            RuleFor(x => x.KepemilikanId).NotEmpty().WithMessage("Kepemilikan harus dipilih");
+            RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Alokasi jabatan harus dipilih");
+        }
+    }
+
+    public class UpdateKendaraanRequestValidator : AbstractValidator<UpdateKendaraanRequest>
+    {
+        public UpdateKendaraanRequestValidator()
+        {
+            RuleFor(x => x.NomorPolisi).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.TipeId).NotEmpty().WithMessage("Tipe harus dipilih");
+            RuleFor(x => x.BahanBakarId).NotEmpty().WithMessage("Bahan bakar harus dipilih");
+            RuleFor(x => x.Merek).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
+            RuleFor(x => x.KepemilikanId).NotEmpty().WithMessage("Kepemilikan harus dipilih");
+            RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Alokasi jabatan harus dipilih");
+        }
+    }
 }
