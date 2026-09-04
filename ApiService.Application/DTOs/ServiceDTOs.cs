@@ -513,6 +513,13 @@ namespace ApiService.Application.DTOs
         public DateTime? ModifiedAt { get; set; }
     }
 
+    /// <summary>DTO ringan untuk dropdown/lookup Kendaraan (tanpa pagination).</summary>
+    public class KendaraanLookupDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+    }
+
     public class KendaraanFilterRequest
     {
         /// <summary>Cari berdasarkan Nomor Polisi atau Merek Kendaraan.</summary>
@@ -522,6 +529,54 @@ namespace ApiService.Application.DTOs
         public string? VendorId { get; set; }
         public string? KepemilikanId { get; set; }
         public string? JabatanId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // RF.ID (Data Master > RF.ID)
+    // Referensi: Pekerja (pemegang), Kendaraan (Nopol)
+    // ===================================
+    public class CreateRfIdRequest
+    {
+        public string RfIdCode { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string KendaraanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class UpdateRfIdRequest
+    {
+        public string RfIdCode { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string KendaraanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class RfIdDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+
+        public string KendaraanId { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class RfIdFilterRequest
+    {
+        /// <summary>Cari berdasarkan RF.ID, No. Pekerja, Nama Pekerja, atau Nomor Polisi.</summary>
+        public string? Search { get; set; }
+        public string? PekerjaId { get; set; }
+        public string? KendaraanId { get; set; }
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
