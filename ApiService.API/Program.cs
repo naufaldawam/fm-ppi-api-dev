@@ -128,6 +128,7 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IPekerjaService, PekerjaService>();
 builder.Services.AddScoped<IKendaraanService, KendaraanService>();
 builder.Services.AddScoped<IRfIdService, RfIdService>();
+builder.Services.AddScoped<IDriverService, DriverService>();
 
 // ===================================
 // VALIDATION
