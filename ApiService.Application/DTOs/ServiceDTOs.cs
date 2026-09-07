@@ -455,11 +455,13 @@ namespace ApiService.Application.DTOs
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup Pekerja (tanpa pagination).</summary>
-    public class PekerjaLookupDto
+        public class PekerjaLookupDto
     {
         public string Id { get; set; } = string.Empty;
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
     }
 
         // ===================================
@@ -589,6 +591,38 @@ namespace ApiService.Application.DTOs
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // RF.ID - BULK UPLOAD
+    // Kolom template: RF.ID | No.Pekerja | Nopol
+    // (pakai No.Pekerja & Nopol sebagai key lookup karena keduanya unique,
+    // beda dengan Nama Pekerja yang bisa duplikat)
+    // ===================================
+    public class RfIdImportRow
+    {
+        public int RowNumber { get; set; }
+        public string RfIdCode { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string Nopol { get; set; } = string.Empty;
+    }
+
+    public class RfIdImportPreviewDto
+    {
+        public string RfIdCode { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string Nopol { get; set; } = string.Empty;
+    }
+
+    public class RfIdImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedRfId { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<RfIdImportPreviewDto> Preview { get; set; } = new();
     }
 
     // ===================================

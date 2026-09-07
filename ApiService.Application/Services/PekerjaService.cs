@@ -81,13 +81,15 @@ namespace ApiService.Application.Services
                     p.NamaPekerja.Contains(search) ||
                     p.NoPekerja.Contains(search));
 
-            var items = await query
+                        var items = await query
                 .OrderBy(p => p.NamaPekerja)
                 .Select(p => new PekerjaLookupDto
                 {
                     Id = p.Id,
                     NoPekerja = p.NoPekerja,
-                    NamaPekerja = p.NamaPekerja
+                    NamaPekerja = p.NamaPekerja,
+                    JabatanId = p.JabatanId,
+                    JabatanName = p.Jabatan != null ? p.Jabatan.Name : string.Empty
                 })
                 .ToListAsync();
 
@@ -279,9 +281,8 @@ namespace ApiService.Application.Services
                     .Select(x => x.Key)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var row in parsedRows.Where(x =>
-                             !string.IsNullOrWhiteSpace(x.NoPekerja) &&
-                             duplicateNoPekerjaInFile.Contains(x.NoPekerja.Trim())))
+                foreach (var row in parsedRows.Where(x => !string.IsNullOrWhiteSpace(x.NoPekerja) && 
+                            duplicateNoPekerjaInFile.Contains(x.NoPekerja.Trim())))
                 {
                     response.Errors.Add(new ImportRowError
                     {
