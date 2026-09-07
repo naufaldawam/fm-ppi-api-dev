@@ -111,7 +111,7 @@ namespace ApiService.Application.Services
                 Email = request.Email,
                 VendorId = request.VendorId,
                 AtasanId = request.AtasanId,
-                IsActive = true,
+                IsActive = request.IsActive,
                 CreatedBy = userId
             };
 

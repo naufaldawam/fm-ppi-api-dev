@@ -417,6 +417,7 @@ namespace ApiService.Application.DTOs
         public string NopekHost { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdatePekerjaRequest
@@ -464,7 +465,7 @@ namespace ApiService.Application.DTOs
         public string JabatanName { get; set; } = string.Empty;
     }
 
-        // ===================================
+    // ===================================
     // KENDARAAN (Data Master > Kendaraan)
     // Referensi: Tipe, BahanBakar, Vendor, Kepemilikan, Jabatan (alokasi jabatan),
     // Pekerja (pejabat pemegang - opsional)
@@ -479,6 +480,7 @@ namespace ApiService.Application.DTOs
         public string KepemilikanId { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string? PekerjaId { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateKendaraanRequest
@@ -637,6 +639,7 @@ namespace ApiService.Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string VendorId { get; set; } = string.Empty;
         public string AtasanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateDriverRequest

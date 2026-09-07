@@ -139,7 +139,7 @@ namespace ApiService.Application.Services
                 KepemilikanId = request.KepemilikanId,
                 JabatanId = request.JabatanId,
                 PekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId,
-                IsActive = true,
+                IsActive = request.IsActive,
                 CreatedBy = userId
             };
 
