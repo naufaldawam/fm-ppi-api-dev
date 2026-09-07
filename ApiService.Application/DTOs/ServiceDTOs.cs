@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace ApiService.Application.DTOs
 {
@@ -643,6 +644,56 @@ namespace ApiService.Application.DTOs
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // SHARED: BULK UPLOAD (dipakai semua modul: Pekerja, RF.ID, Driver, Kendaraan, dst.)
+    // ===================================
+
+    /// <summary>Hasil file untuk endpoint download (template, export, dsb).</summary>
+    public class FileResult
+    {
+        public string FileName { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public Stream FileStream { get; set; } = null!;
+    }
+
+    /// <summary>Satu baris error validasi hasil bulk upload.</summary>
+    public class ImportRowError
+    {
+        public int RowNumber { get; set; }
+        public string Column { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
+    }
+
+    // ===================================
+    // PEKERJA - BULK UPLOAD
+    // ===================================
+    public class PekerjaImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class PekerjaImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class PekerjaImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedPekerja { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<PekerjaImportPreviewDto> Preview { get; set; } = new();
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).
