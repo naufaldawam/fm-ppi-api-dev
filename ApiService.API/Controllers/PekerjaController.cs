@@ -4,6 +4,8 @@ using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Application.Services;
 using ApiService.API.Filters;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace ApiService.API.Controllers
 {
@@ -80,6 +82,51 @@ namespace ApiService.API.Controllers
         {
             var result = await _pekerjaService.DeleteAsync(id, _currentUser.UserId!);
             if (!result.Success) return NotFound(result);
+            return Ok(result);
+        }
+
+        /// <summary>Download template Excel untuk bulk upload Pekerja.</summary>
+        [HttpGet("download-template")]
+        [RequirePermission("pekerja.read")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            _logger.LogInformation("User {UserId} download template pekerja.", _currentUser.UserId);
+
+            var result = await _pekerjaService.GetImportTemplateAsync();
+            if (!result.Success || result.Data == null)
+                return StatusCode(result.StatusCode, result);
+
+            var file = result.Data;
+            return File(file.FileStream, file.ContentType, file.FileName);
+        }
+
+        /// <summary>Bulk upload data Pekerja dari file Excel (.xlsx).</summary>
+        [HttpPost("import-excel")]
+        [RequirePermission("pekerja.create")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "File tidak boleh kosong." });
+
+            const long maxFileSize = 20 * 1024 * 1024;
+            if (file.Length > maxFileSize)
+                return BadRequest(new { success = false, message = "Ukuran file maksimal 20 MB." });
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension != ".xlsx")
+                return BadRequest(new { success = false, message = "Hanya mendukung file dengan format .xlsx." });
+
+            var userId = _currentUser.UserId!;
+
+            await using var stream = file.OpenReadStream();
+            var result = await _pekerjaService.ImportFromExcelAsync(stream, userId);
+
+            _logger.LogInformation(
+                "Import pekerja | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
+                file.FileName, file.Length, userId, result.Success);
+
             return Ok(result);
         }
     }
