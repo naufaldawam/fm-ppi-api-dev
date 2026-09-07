@@ -455,11 +455,13 @@ namespace ApiService.Application.DTOs
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup Pekerja (tanpa pagination).</summary>
-    public class PekerjaLookupDto
+        public class PekerjaLookupDto
     {
         public string Id { get; set; } = string.Empty;
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
     }
 
         // ===================================

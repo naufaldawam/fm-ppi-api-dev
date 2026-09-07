@@ -81,13 +81,15 @@ namespace ApiService.Application.Services
                     p.NamaPekerja.Contains(search) ||
                     p.NoPekerja.Contains(search));
 
-            var items = await query
+                        var items = await query
                 .OrderBy(p => p.NamaPekerja)
                 .Select(p => new PekerjaLookupDto
                 {
                     Id = p.Id,
                     NoPekerja = p.NoPekerja,
-                    NamaPekerja = p.NamaPekerja
+                    NamaPekerja = p.NamaPekerja,
+                    JabatanId = p.JabatanId,
+                    JabatanName = p.Jabatan != null ? p.Jabatan.Name : string.Empty
                 })
                 .ToListAsync();
 
