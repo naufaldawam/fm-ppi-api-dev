@@ -279,9 +279,8 @@ namespace ApiService.Application.Services
                     .Select(x => x.Key)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var row in parsedRows.Where(x =>
-                             !string.IsNullOrWhiteSpace(x.NoPekerja) &&
-                             duplicateNoPekerjaInFile.Contains(x.NoPekerja.Trim())))
+                foreach (var row in parsedRows.Where(x => !string.IsNullOrWhiteSpace(x.NoPekerja) && 
+                            duplicateNoPekerjaInFile.Contains(x.NoPekerja.Trim())))
                 {
                     response.Errors.Add(new ImportRowError
                     {
