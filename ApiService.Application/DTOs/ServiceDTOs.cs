@@ -417,6 +417,7 @@ namespace ApiService.Application.DTOs
         public string NopekHost { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdatePekerjaRequest
@@ -464,7 +465,7 @@ namespace ApiService.Application.DTOs
         public string JabatanName { get; set; } = string.Empty;
     }
 
-        // ===================================
+    // ===================================
     // KENDARAAN (Data Master > Kendaraan)
     // Referensi: Tipe, BahanBakar, Vendor, Kepemilikan, Jabatan (alokasi jabatan),
     // Pekerja (pejabat pemegang - opsional)
@@ -479,6 +480,7 @@ namespace ApiService.Application.DTOs
         public string KepemilikanId { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string? PekerjaId { get; set; }
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateKendaraanRequest
@@ -637,6 +639,7 @@ namespace ApiService.Application.DTOs
         public string Email { get; set; } = string.Empty;
         public string VendorId { get; set; } = string.Empty;
         public string AtasanId { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
     }
 
     public class UpdateDriverRequest
@@ -678,6 +681,46 @@ namespace ApiService.Application.DTOs
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // KENDARAAN - BULK UPLOAD
+    // Tambahkan bagian ini ke dalam ServiceDTOs.cs, setelah blok KendaraanFilterRequest
+    // Kolom template: Nopol | Merek | Tipe | BahanBakar | Vendor | Kepemilikan | Jabatan
+    // (pakai Name sebagai key lookup, karena Name bersifat unique per master)
+    // ===================================
+
+    public class KendaraanImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string TipeName { get; set; } = string.Empty;
+        public string BahanBakarName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string KepemilikanName { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class KendaraanImportPreviewDto
+    {
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string TipeName { get; set; } = string.Empty;
+        public string BahanBakarName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string KepemilikanName { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class KendaraanImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedKendaraan { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<KendaraanImportPreviewDto> Preview { get; set; } = new();
     }
 
     // ===================================

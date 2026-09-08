@@ -130,7 +130,7 @@ namespace ApiService.Application.Services
                 NamaPekerja = request.NamaPekerja,
                 JabatanId = request.JabatanId,
                 // RfIds sengaja tidak di-set di sini -> di-assign belakangan lewat menu RF.ID
-                IsActive = true,
+                IsActive = request.IsActive,
                 CreatedBy = userId
             };
 
