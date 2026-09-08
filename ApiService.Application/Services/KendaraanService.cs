@@ -1,13 +1,13 @@
 using System;
+using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using ClosedXML.Excel;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
-using System.IO;
-using System.Collections.Generic;
-using ClosedXML.Excel;
 
 namespace ApiService.Application.Services
 {
@@ -15,13 +15,13 @@ namespace ApiService.Application.Services
     {
         Task<ApiResponse<PagedResponse<KendaraanDto>>> GetAllAsync(KendaraanFilterRequest filter);
         Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
+        Task<ApiResponse<List<PekerjaLookupDto>>> GetPekerjaLookupByJabatanAsync(string jabatanId, string? search, bool activeOnly = true);
         Task<ApiResponse<KendaraanDto>> GetByIdAsync(string id);
         Task<ApiResponse<KendaraanDto>> CreateAsync(CreateKendaraanRequest request, string userId);
         Task<ApiResponse<KendaraanDto>> UpdateAsync(string id, UpdateKendaraanRequest request, string userId);
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
         Task<ApiResponse<KendaraanImportResponse>> ImportFromExcelAsync(Stream fileStream, string userId);
         Task<ApiResponse<FileResult>> GetImportTemplateAsync();
-        
     }
 
     public class KendaraanService : IKendaraanService
@@ -33,6 +33,10 @@ namespace ApiService.Application.Services
             _context = context;
         }
 
+        // =========================================================
+        // BASE QUERY
+        // =========================================================
+
         private IQueryable<Kendaraan> BaseQuery() =>
             _context.Kendaraans
                 .Include(k => k.Tipe)
@@ -41,6 +45,10 @@ namespace ApiService.Application.Services
                 .Include(k => k.Jabatan)
                 .Include(k => k.Pekerja)
                 .Where(k => !k.IsDeleted);
+
+        // =========================================================
+        // GET ALL (paged + filter)
+        // =========================================================
 
         public async Task<ApiResponse<PagedResponse<KendaraanDto>>> GetAllAsync(KendaraanFilterRequest filter)
         {
@@ -83,10 +91,13 @@ namespace ApiService.Application.Services
             });
         }
 
+        // =========================================================
+        // LOOKUP KENDARAAN (dropdown Nopol)
+        // =========================================================
+
         public async Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
         {
-            var query = _context.Kendaraans
-                .Where(k => !k.IsDeleted);
+            var query = _context.Kendaraans.Where(k => !k.IsDeleted);
 
             if (activeOnly)
                 query = query.Where(k => k.IsActive);
@@ -105,6 +116,58 @@ namespace ApiService.Application.Services
 
             return ApiResponse<List<KendaraanLookupDto>>.SuccessResponse(items);
         }
+
+        // =========================================================
+        // LOOKUP PEJABAT BERDASARKAN JABATAN
+        // Digunakan frontend: setelah user pilih Alokasi Jabatan,
+        // dropdown Pejabat hanya menampilkan Pekerja yang JabatanId-nya sama.
+        // GET /kendaraan/pekerja-lookup?jabatanId=xxx&search=yyy&activeOnly=true
+        // =========================================================
+
+        public async Task<ApiResponse<List<PekerjaLookupDto>>> GetPekerjaLookupByJabatanAsync(
+            string jabatanId, string? search, bool activeOnly = true)
+        {
+            if (string.IsNullOrWhiteSpace(jabatanId))
+                return ApiResponse<List<PekerjaLookupDto>>.BadRequest("JabatanId wajib diisi.");
+
+            var jabatanExists = await _context.Jabatans
+                .AnyAsync(j => j.Id == jabatanId && !j.IsDeleted);
+
+            if (!jabatanExists)
+                return ApiResponse<List<PekerjaLookupDto>>.ErrorResponse(
+                    "ERR-KENDARAAN-010", "Alokasi jabatan tidak ditemukan.");
+
+            var query = _context.Pekerjas
+                .Include(p => p.Jabatan)
+                .Where(p => !p.IsDeleted && p.JabatanId == jabatanId);
+
+            if (activeOnly)
+                query = query.Where(p => p.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+                query = query.Where(p =>
+                    p.NamaPekerja.Contains(search) ||
+                    p.NoPekerja.Contains(search));
+
+            var items = await query
+                .OrderBy(p => p.NamaPekerja)
+                .Select(p => new PekerjaLookupDto
+                {
+                    Id = p.Id,
+                    NoPekerja = p.NoPekerja,
+                    NamaPekerja = p.NamaPekerja,
+                    JabatanId = p.JabatanId,
+                    JabatanName = p.Jabatan != null ? p.Jabatan.Name : string.Empty
+                })
+                .ToListAsync();
+
+            return ApiResponse<List<PekerjaLookupDto>>.SuccessResponse(items);
+        }
+
+        // =========================================================
+        // GET BY ID
+        // =========================================================
+
         public async Task<ApiResponse<KendaraanDto>> GetByIdAsync(string id)
         {
             var kendaraan = await BaseQuery().FirstOrDefaultAsync(k => k.Id == id);
@@ -114,6 +177,10 @@ namespace ApiService.Application.Services
 
             return ApiResponse<KendaraanDto>.SuccessResponse(MapToDto(kendaraan));
         }
+
+        // =========================================================
+        // CREATE
+        // =========================================================
 
         public async Task<ApiResponse<KendaraanDto>> CreateAsync(CreateKendaraanRequest request, string userId)
         {
@@ -130,6 +197,18 @@ namespace ApiService.Application.Services
             if (refError != null)
                 return ApiResponse<KendaraanDto>.ErrorResponse(refError.Value.code, refError.Value.message);
 
+            // Validasi Pejabat harus punya jabatan yang sama dengan alokasi jabatan kendaraan
+            if (!string.IsNullOrEmpty(request.PekerjaId))
+            {
+                var pekerjaJabatanMatch = await _context.Pekerjas
+                    .AnyAsync(p => p.Id == request.PekerjaId && p.JabatanId == request.JabatanId && !p.IsDeleted);
+
+                if (!pekerjaJabatanMatch)
+                    return ApiResponse<KendaraanDto>.ErrorResponse(
+                        "ERR-KENDARAAN-009",
+                        "Pejabat yang dipilih tidak memiliki jabatan yang sesuai dengan alokasi jabatan kendaraan ini.");
+            }
+
             var kendaraan = new Kendaraan
             {
                 NomorPolisi = request.NomorPolisi,
@@ -139,7 +218,7 @@ namespace ApiService.Application.Services
                 KepemilikanId = request.KepemilikanId,
                 JabatanId = request.JabatanId,
                 PekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId,
-                IsActive = request.IsActive,
+                IsActive = true,
                 CreatedBy = userId
             };
 
@@ -149,6 +228,10 @@ namespace ApiService.Application.Services
             var created = await BaseQuery().FirstAsync(k => k.Id == kendaraan.Id);
             return ApiResponse<KendaraanDto>.SuccessResponse(MapToDto(created), "Kendaraan berhasil ditambahkan");
         }
+
+        // =========================================================
+        // UPDATE
+        // =========================================================
 
         public async Task<ApiResponse<KendaraanDto>> UpdateAsync(string id, UpdateKendaraanRequest request, string userId)
         {
@@ -171,6 +254,18 @@ namespace ApiService.Application.Services
             if (refError != null)
                 return ApiResponse<KendaraanDto>.ErrorResponse(refError.Value.code, refError.Value.message);
 
+            // Validasi Pejabat harus punya jabatan yang sama dengan alokasi jabatan kendaraan
+            if (!string.IsNullOrEmpty(request.PekerjaId))
+            {
+                var pekerjaJabatanMatch = await _context.Pekerjas
+                    .AnyAsync(p => p.Id == request.PekerjaId && p.JabatanId == request.JabatanId && !p.IsDeleted);
+
+                if (!pekerjaJabatanMatch)
+                    return ApiResponse<KendaraanDto>.ErrorResponse(
+                        "ERR-KENDARAAN-009",
+                        "Pejabat yang dipilih tidak memiliki jabatan yang sesuai dengan alokasi jabatan kendaraan ini.");
+            }
+
             kendaraan.NomorPolisi = request.NomorPolisi;
             kendaraan.TipeId = request.TipeId;
             kendaraan.BahanBakarId = request.BahanBakarId;
@@ -187,6 +282,10 @@ namespace ApiService.Application.Services
             var updated = await BaseQuery().FirstAsync(k => k.Id == kendaraan.Id);
             return ApiResponse<KendaraanDto>.SuccessResponse(MapToDto(updated), "Kendaraan berhasil diperbarui");
         }
+
+        // =========================================================
+        // DELETE
+        // =========================================================
 
         public async Task<ApiResponse<bool>> DeleteAsync(string id, string userId)
         {
@@ -205,99 +304,98 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "Kendaraan deleted");
         }
 
+        // =========================================================
+        // BULK UPLOAD — IMPORT FROM EXCEL
+        // Template kolom: Nopol | Merek | Tipe | BahanBakar | Kepemilikan | Jabatan | NoPekerja
+        // NoPekerja opsional. Jika diisi, jabatan pekerja HARUS cocok dengan kolom Jabatan.
+        // =========================================================
+
         private const int KendaraanImportHeaderRow = 1;
         private const int KendaraanImportDataStartRow = 2;
-        
+
         private static readonly string[] KendaraanRequiredImportHeaders =
         {
-            "nopol", "merek", "tipe", "bahanbakar", "kepemilikan", "jabatan"
+            "nopol", "merek", "tipe", "bahanbakar", "kepemilikan", "jabatan", "nopekerja"
         };
-        
-        // =========================================================
-        // BULK UPLOAD KENDARAAN
-        // Template kolom: Nopol | Merek | Tipe | BahanBakar | Kepemilikan | Jabatan
-        // Semua lookup via Name (bukan Id) karena user tidak tahu Id master data
-        // =========================================================
-        
+
         public async Task<ApiResponse<KendaraanImportResponse>> ImportFromExcelAsync(Stream fileStream, string userId)
         {
             var response = new KendaraanImportResponse();
-        
+
             if (fileStream == null || !fileStream.CanRead)
                 return ApiResponse<KendaraanImportResponse>.BadRequest("File tidak dapat dibaca.");
-        
+
             try
             {
                 using var workbook = new XLWorkbook(fileStream);
-        
+
                 if (workbook.Worksheets.Count == 0)
                     return ApiResponse<KendaraanImportResponse>.BadRequest("Worksheet Excel tidak ditemukan.");
-        
+
                 var sheet = workbook.Worksheet(1);
                 var usedRange = sheet.RangeUsed();
-        
+
                 if (usedRange == null)
                     return ApiResponse<KendaraanImportResponse>.BadRequest("Worksheet Excel kosong.");
-        
-                var headerMap = BuildKendaraanImportHeaderMap(sheet, KendaraanImportHeaderRow);
+
+                var headerMap = BuildImportHeaderMap(sheet, KendaraanImportHeaderRow);
                 var lastRow = usedRange.LastRow().RowNumber();
-        
+
                 var missingHeaders = KendaraanRequiredImportHeaders
                     .Where(x => !headerMap.ContainsKey(x))
                     .ToList();
-        
+
                 if (missingHeaders.Count > 0)
-                {
                     return ApiResponse<KendaraanImportResponse>.BadRequest(
                         $"Header template tidak lengkap atau sudah diubah. Kolom hilang: {string.Join(", ", missingHeaders)}.");
-                }
-        
+
+                // ---- PARSE ROWS ----
                 var parsedRows = new List<KendaraanImportRow>();
-        
+
                 for (var row = KendaraanImportDataStartRow; row <= lastRow; row++)
                 {
-                    if (IsKendaraanImportRowEmpty(sheet, row, headerMap))
-                        continue;
-        
+                    if (IsImportRowEmpty(sheet, row, headerMap)) continue;
+
                     response.TotalRows++;
-        
-                    var parsedRow = new KendaraanImportRow
+
+                    var parsed = new KendaraanImportRow
                     {
                         RowNumber = row,
-                        NomorPolisi    = GetKendaraanImportCellText(sheet, row, headerMap, "Nopol"),
-                        Merek          = GetKendaraanImportCellText(sheet, row, headerMap, "Merek"),
-                        TipeName       = GetKendaraanImportCellText(sheet, row, headerMap, "Tipe"),
-                        BahanBakarName = GetKendaraanImportCellText(sheet, row, headerMap, "BahanBakar"),
-                        KepemilikanName = GetKendaraanImportCellText(sheet, row, headerMap, "Kepemilikan"),
-                        JabatanName    = GetKendaraanImportCellText(sheet, row, headerMap, "Jabatan"),
+                        NomorPolisi = GetCellText(sheet, row, headerMap, "Nopol"),
+                        Merek = GetCellText(sheet, row, headerMap, "Merek"),
+                        TipeName = GetCellText(sheet, row, headerMap, "Tipe"),
+                        BahanBakarName = GetCellText(sheet, row, headerMap, "BahanBakar"),
+                        KepemilikanName = GetCellText(sheet, row, headerMap, "Kepemilikan"),
+                        JabatanName = GetCellText(sheet, row, headerMap, "Jabatan"),
+                        NoPekerja = GetCellText(sheet, row, headerMap, "NoPekerjaAtasan"),
                     };
-        
-                    ValidateKendaraanRequiredField(response.Errors, row, "Nopol",       parsedRow.NomorPolisi);
-                    ValidateKendaraanRequiredField(response.Errors, row, "Merek",       parsedRow.Merek);
-                    ValidateKendaraanRequiredField(response.Errors, row, "Tipe",        parsedRow.TipeName);
-                    ValidateKendaraanRequiredField(response.Errors, row, "BahanBakar",  parsedRow.BahanBakarName);
-                    ValidateKendaraanRequiredField(response.Errors, row, "Kepemilikan", parsedRow.KepemilikanName);
-                    ValidateKendaraanRequiredField(response.Errors, row, "Jabatan",     parsedRow.JabatanName);
-        
-                    parsedRows.Add(parsedRow);
+
+                    // Required fields
+                    ValidateRequired(response.Errors, row, "Nopol", parsed.NomorPolisi);
+                    ValidateRequired(response.Errors, row, "Merek", parsed.Merek);
+                    ValidateRequired(response.Errors, row, "Tipe", parsed.TipeName);
+                    ValidateRequired(response.Errors, row, "BahanBakar", parsed.BahanBakarName);
+                    ValidateRequired(response.Errors, row, "Kepemilikan", parsed.KepemilikanName);
+                    ValidateRequired(response.Errors, row, "Jabatan", parsed.JabatanName);
+                    // NoPekerja: opsional — tidak divalidate required
+
+                    parsedRows.Add(parsed);
                 }
-        
+
                 if (parsedRows.Count == 0)
                     return ApiResponse<KendaraanImportResponse>.BadRequest("Tidak ada data Kendaraan pada file Excel.");
-        
-                // =========================
-                // VALIDASI DUPLIKAT NOPOL DI DALAM FILE
-                // =========================
+
+                // ---- DUPLIKAT NOPOL DALAM FILE ----
                 var duplicateNopolInFile = parsedRows
                     .Where(x => !string.IsNullOrWhiteSpace(x.NomorPolisi))
                     .GroupBy(x => x.NomorPolisi.Trim(), StringComparer.OrdinalIgnoreCase)
                     .Where(g => g.Count() > 1)
                     .Select(g => g.Key)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        
+
                 foreach (var row in parsedRows.Where(x =>
-                            !string.IsNullOrWhiteSpace(x.NomorPolisi) &&
-                            duplicateNopolInFile.Contains(x.NomorPolisi.Trim())))
+                    !string.IsNullOrWhiteSpace(x.NomorPolisi) &&
+                    duplicateNopolInFile.Contains(x.NomorPolisi.Trim())))
                 {
                     response.Errors.Add(new ImportRowError
                     {
@@ -306,26 +404,24 @@ namespace ApiService.Application.Services
                         Message = $"Nopol '{row.NomorPolisi}' duplikat di dalam file Excel."
                     });
                 }
-        
-                // =========================
-                // VALIDASI NOPOL SUDAH TERDAFTAR DI DB
-                // =========================
+
+                // ---- NOPOL SUDAH ADA DI DB ----
                 var nopolList = parsedRows
                     .Where(x => !string.IsNullOrWhiteSpace(x.NomorPolisi))
                     .Select(x => x.NomorPolisi.Trim())
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .ToList();
-        
+
                 var existingNopols = await _context.Kendaraans
                     .Where(x => !x.IsDeleted && nopolList.Contains(x.NomorPolisi))
                     .Select(x => x.NomorPolisi)
                     .ToListAsync();
-        
+
                 var existingNopolSet = existingNopols.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        
+
                 foreach (var row in parsedRows.Where(x =>
-                            !string.IsNullOrWhiteSpace(x.NomorPolisi) &&
-                            existingNopolSet.Contains(x.NomorPolisi.Trim())))
+                    !string.IsNullOrWhiteSpace(x.NomorPolisi) &&
+                    existingNopolSet.Contains(x.NomorPolisi.Trim())))
                 {
                     response.Errors.Add(new ImportRowError
                     {
@@ -334,18 +430,18 @@ namespace ApiService.Application.Services
                         Message = $"Nopol '{row.NomorPolisi}' sudah terdaftar."
                     });
                 }
-        
-                // =========================
-                // LOAD SEMUA MASTER DATA SEKALIGUS (efisien, 1 query per master)
-                // =========================
-                var tipes        = await _context.Tipes.Where(x => !x.IsDeleted).ToListAsync();
-                var bahanBakars  = await _context.BahanBakars.Where(x => !x.IsDeleted).ToListAsync();
+
+                // ---- LOAD SEMUA MASTER DATA SEKALI ----
+                var tipes = await _context.Tipes.Where(x => !x.IsDeleted).ToListAsync();
+                var bahanBakars = await _context.BahanBakars.Where(x => !x.IsDeleted).ToListAsync();
                 var kepemilikans = await _context.Kepemilikans.Where(x => !x.IsDeleted).ToListAsync();
-                var jabatans     = await _context.Jabatans.Where(x => !x.IsDeleted).ToListAsync();
-        
-                // =========================
-                // VALIDASI REFERENSI MASTER DATA PER BARIS
-                // =========================
+                var jabatans = await _context.Jabatans.Where(x => !x.IsDeleted).ToListAsync();
+                var pekerjas = await _context.Pekerjas
+                    .Include(p => p.Jabatan)
+                    .Where(x => !x.IsDeleted)
+                    .ToListAsync();
+
+                // ---- VALIDASI MASTER PER ROW ----
                 foreach (var row in parsedRows)
                 {
                     if (!string.IsNullOrWhiteSpace(row.TipeName) &&
@@ -358,7 +454,7 @@ namespace ApiService.Application.Services
                             Message = $"Tipe '{row.TipeName}' tidak ditemukan pada master Tipe."
                         });
                     }
-        
+
                     if (!string.IsNullOrWhiteSpace(row.BahanBakarName) &&
                         !bahanBakars.Any(x => string.Equals(x.Name.Trim(), row.BahanBakarName.Trim(), StringComparison.OrdinalIgnoreCase)))
                     {
@@ -369,7 +465,7 @@ namespace ApiService.Application.Services
                             Message = $"BahanBakar '{row.BahanBakarName}' tidak ditemukan pada master BahanBakar."
                         });
                     }
-        
+
                     if (!string.IsNullOrWhiteSpace(row.KepemilikanName) &&
                         !kepemilikans.Any(x => string.Equals(x.Name.Trim(), row.KepemilikanName.Trim(), StringComparison.OrdinalIgnoreCase)))
                     {
@@ -380,9 +476,12 @@ namespace ApiService.Application.Services
                             Message = $"Kepemilikan '{row.KepemilikanName}' tidak ditemukan pada master Kepemilikan."
                         });
                     }
-        
-                    if (!string.IsNullOrWhiteSpace(row.JabatanName) &&
-                        !jabatans.Any(x => string.Equals(x.Name.Trim(), row.JabatanName.Trim(), StringComparison.OrdinalIgnoreCase)))
+
+                    // Jabatan -- simpan referensi object untuk dipakai di cek pejabat di bawah
+                    var jabatan = jabatans.FirstOrDefault(x =>
+                        string.Equals(x.Name.Trim(), row.JabatanName.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                    if (!string.IsNullOrWhiteSpace(row.JabatanName) && jabatan == null)
                     {
                         response.Errors.Add(new ImportRowError
                         {
@@ -391,80 +490,111 @@ namespace ApiService.Application.Services
                             Message = $"Jabatan '{row.JabatanName}' tidak ditemukan pada master Jabatan."
                         });
                     }
+
+                    // NoPekerja opsional — jika diisi, validasi ada & jabatan cocok
+                    if (!string.IsNullOrWhiteSpace(row.NoPekerja))
+                    {
+                        var pekerja = pekerjas.FirstOrDefault(x =>
+                            string.Equals(x.NoPekerja?.Trim(), row.NoPekerja.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                        if (pekerja == null)
+                        {
+                            response.Errors.Add(new ImportRowError
+                            {
+                                RowNumber = row.RowNumber,
+                                Column = "NoPekerja",
+                                Message = $"NoPekerja '{row.NoPekerja}' tidak ditemukan pada master Pekerja."
+                            });
+                        }
+                        else if (jabatan != null &&
+                                 !string.Equals(pekerja.JabatanId, jabatan.Id, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Jabatan pekerja tidak cocok dengan alokasi jabatan kendaraan
+                            response.Errors.Add(new ImportRowError
+                            {
+                                RowNumber = row.RowNumber,
+                                Column = "NoPekerja",
+                                Message = $"Pejabat '{pekerja.NamaPekerja}' (NoPekerja: {row.NoPekerja}) " +
+                                            $"memiliki jabatan '{pekerja.Jabatan?.Name}', " +
+                                            $"tidak sesuai dengan alokasi jabatan kendaraan '{row.JabatanName}'."
+                            });
+                        }
+                    }
                 }
-        
-                // =========================
-                // JIKA ADA ERROR VALIDASI -> TIDAK ADA YANG DISIMPAN
-                // =========================
+
+                // ---- ALL-OR-NOTHING: ada error -> tidak ada yang disimpan ----
                 if (response.Errors.Count > 0)
                 {
                     response.ErrorCount = response.Errors.Count;
                     response.SuccessCount = 0;
                     response.InsertedKendaraan = 0;
-        
+
                     return ApiResponse<KendaraanImportResponse>.SuccessResponse(
                         response,
                         "Import selesai dengan error. Tidak ada data Kendaraan yang disimpan.");
                 }
-        
-                // =========================
-                // BUILD & SAVE
-                // =========================
+
+                // ---- BUILD & SAVE ----
                 var now = DateTime.UtcNow;
                 var newKendaraans = new List<Kendaraan>();
-        
+
                 foreach (var row in parsedRows)
                 {
-                    var tipe       = tipes.First(x => string.Equals(x.Name.Trim(), row.TipeName.Trim(), StringComparison.OrdinalIgnoreCase));
+                    var tipe = tipes.First(x => string.Equals(x.Name.Trim(), row.TipeName.Trim(), StringComparison.OrdinalIgnoreCase));
                     var bahanBakar = bahanBakars.First(x => string.Equals(x.Name.Trim(), row.BahanBakarName.Trim(), StringComparison.OrdinalIgnoreCase));
                     var kepemilikan = kepemilikans.First(x => string.Equals(x.Name.Trim(), row.KepemilikanName.Trim(), StringComparison.OrdinalIgnoreCase));
-                    var jabatan    = jabatans.First(x => string.Equals(x.Name.Trim(), row.JabatanName.Trim(), StringComparison.OrdinalIgnoreCase));
-        
+                    var jabatan = jabatans.First(x => string.Equals(x.Name.Trim(), row.JabatanName.Trim(), StringComparison.OrdinalIgnoreCase));
+
+                    var pejabat = string.IsNullOrWhiteSpace(row.NoPekerja)
+                        ? null
+                        : pekerjas.FirstOrDefault(x =>
+                            string.Equals(x.NoPekerja?.Trim(), row.NoPekerja.Trim(), StringComparison.OrdinalIgnoreCase));
+
                     var kendaraan = new Kendaraan
                     {
-                        NomorPolisi  = row.NomorPolisi.Trim(),
-                        Merek        = row.Merek.Trim(),
-                        TipeId       = tipe.Id,
+                        NomorPolisi = row.NomorPolisi.Trim(),
+                        Merek = row.Merek.Trim(),
+                        TipeId = tipe.Id,
                         BahanBakarId = bahanBakar.Id,
                         KepemilikanId = kepemilikan.Id,
-                        JabatanId    = jabatan.Id,
-                        PekerjaId    = null,   // bulk upload tidak mengisi pejabat pemegang
-                        IsActive     = true,
-                        CreatedBy    = userId,
-                        CreatedAt    = now
+                        JabatanId = jabatan.Id,
+                        PekerjaId = pejabat?.Id,
+                        IsActive = true,
+                        CreatedBy = userId,
+                        CreatedAt = now
                     };
-        
+
                     newKendaraans.Add(kendaraan);
-        
+
                     if (response.Preview.Count < 10)
                     {
                         response.Preview.Add(new KendaraanImportPreviewDto
                         {
-                            NomorPolisi    = kendaraan.NomorPolisi,
-                            Merek          = kendaraan.Merek,
-                            TipeName       = tipe.Name,
+                            NomorPolisi = kendaraan.NomorPolisi,
+                            Merek = kendaraan.Merek,
+                            TipeName = tipe.Name,
                             BahanBakarName = bahanBakar.Name,
                             KepemilikanName = kepemilikan.Name,
-                            JabatanName    = jabatan.Name
+                            JabatanName = jabatan.Name,
+                            NamaPejabat = pejabat?.NamaPekerja ?? string.Empty
                         });
                     }
                 }
-        
+
                 await _context.Kendaraans.AddRangeAsync(newKendaraans);
                 await _context.SaveChangesAsync();
-        
+
                 response.InsertedKendaraan = newKendaraans.Count;
                 response.SuccessCount = newKendaraans.Count;
                 response.ErrorCount = 0;
-        
+
                 return ApiResponse<KendaraanImportResponse>.SuccessResponse(
-                    response,
-                    $"{response.InsertedKendaraan} Kendaraan berhasil diimport.");
+                    response, $"{response.InsertedKendaraan} Kendaraan berhasil diimport.");
             }
             catch (DbUpdateException ex)
             {
                 var dbMessage = ex.InnerException?.Message ?? ex.Message;
-        
+
                 if (dbMessage.Contains("IX_Kendaraans_NomorPolisi", StringComparison.OrdinalIgnoreCase))
                 {
                     response.Errors.Add(new ImportRowError
@@ -473,16 +603,15 @@ namespace ApiService.Application.Services
                         Column = "Nopol",
                         Message = "Terdapat Nopol yang sudah terdaftar."
                     });
-        
+
                     response.ErrorCount = response.Errors.Count;
                     response.SuccessCount = 0;
                     response.InsertedKendaraan = 0;
-        
+
                     return ApiResponse<KendaraanImportResponse>.SuccessResponse(
-                        response,
-                        "Import dibatalkan karena terdapat Nopol duplikat.");
+                        response, "Import dibatalkan karena terdapat Nopol duplikat.");
                 }
-        
+
                 return ApiResponse<KendaraanImportResponse>.ErrorResponse(
                     "ERR-KENDARAAN-IMPORT-001", "Terjadi kesalahan saat menyimpan data Kendaraan.");
             }
@@ -492,165 +621,97 @@ namespace ApiService.Application.Services
                     "ERR-KENDARAAN-IMPORT-002", $"Gagal mengimport data Kendaraan: {ex.Message}");
             }
         }
-        
+
+        // =========================================================
+        // BULK UPLOAD — DOWNLOAD TEMPLATE
+        // Sheet: Kendaraan | Referensi Tipe | Referensi BahanBakar |
+        //        Referensi Kepemilikan | Referensi Jabatan | Referensi Pejabat
+        // =========================================================
+
         public async Task<ApiResponse<FileResult>> GetImportTemplateAsync()
         {
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Kendaraan");
-        
-            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Kepemilikan", "Jabatan" };
+
+            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Kepemilikan", "Jabatan", "NoPekerja" };
             for (var i = 0; i < headers.Length; i++)
                 sheet.Cell(KendaraanImportHeaderRow, i + 1).Value = headers[i];
-        
+
             var headerRange = sheet.Range(KendaraanImportHeaderRow, 1, KendaraanImportHeaderRow, headers.Length);
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#DCEEE8");
             headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        
-            // Baris contoh pengisian (italic abu-abu — harus dihapus/ditimpa user)
-            sheet.Cell(2, 1).Value = "B1234XYZ";
-            sheet.Cell(2, 2).Value = "Toyota Innova";
-            sheet.Cell(2, 3).Value = "MPV";
-            sheet.Cell(2, 4).Value = "Bensin";
-            sheet.Cell(2, 5).Value = "PT Astra";
-            sheet.Cell(2, 6).Value = "Dinas";
-            sheet.Cell(2, 7).Value = "Manager";
+
+            // Baris contoh (italic abu-abu, boleh ditimpa/dihapus)
+            var exampleValues = new[] { "B1234XYZ", "Toyota Innova", "MPV", "Bensin", "Dinas", "Manager", "19280027 (opsional)" };
+            for (var i = 0; i < exampleValues.Length; i++)
+                sheet.Cell(2, i + 1).Value = exampleValues[i];
             sheet.Range(2, 1, 2, headers.Length).Style.Font.Italic = true;
             sheet.Range(2, 1, 2, headers.Length).Style.Font.FontColor = XLColor.Gray;
-        
+
             sheet.Columns().AdjustToContents();
-        
-            // Sheet referensi Tipe
+
+            // ---- Sheet referensi Tipe ----
             var tipes = await _context.Tipes
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-        
-            var tipeRefSheet = workbook.Worksheets.Add("Referensi Tipe");
-            tipeRefSheet.Cell(1, 1).Value = "Tipe (Valid)";
-            tipeRefSheet.Cell(1, 1).Style.Font.Bold = true;
-            for (var i = 0; i < tipes.Count; i++)
-                tipeRefSheet.Cell(i + 2, 1).Value = tipes[i].Name;
-            tipeRefSheet.Columns().AdjustToContents();
-        
-            // Sheet referensi BahanBakar
+                .Where(x => !x.IsDeleted && x.IsActive).OrderBy(x => x.Name).ToListAsync();
+            AddReferenceSheet(workbook, "Referensi Tipe", new[] { "Tipe (Valid)" },
+                tipes.Select(x => new[] { x.Name }).ToList());
+
+            // ---- Sheet referensi BahanBakar ----
             var bahanBakars = await _context.BahanBakars
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-        
-            var bahanBakarRefSheet = workbook.Worksheets.Add("Referensi BahanBakar");
-            bahanBakarRefSheet.Cell(1, 1).Value = "BahanBakar (Valid)";
-            bahanBakarRefSheet.Cell(1, 1).Style.Font.Bold = true;
-            for (var i = 0; i < bahanBakars.Count; i++)
-                bahanBakarRefSheet.Cell(i + 2, 1).Value = bahanBakars[i].Name;
-            bahanBakarRefSheet.Columns().AdjustToContents();
-        
-            // Sheet referensi Kepemilikan
+                .Where(x => !x.IsDeleted && x.IsActive).OrderBy(x => x.Name).ToListAsync();
+            AddReferenceSheet(workbook, "Referensi BahanBakar", new[] { "BahanBakar (Valid)" },
+                bahanBakars.Select(x => new[] { x.Name }).ToList());
+
+            // ---- Sheet referensi Kepemilikan ----
             var kepemilikans = await _context.Kepemilikans
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-        
-            var kepemilikanRefSheet = workbook.Worksheets.Add("Referensi Kepemilikan");
-            kepemilikanRefSheet.Cell(1, 1).Value = "Kepemilikan (Valid)";
-            kepemilikanRefSheet.Cell(1, 1).Style.Font.Bold = true;
-            for (var i = 0; i < kepemilikans.Count; i++)
-                kepemilikanRefSheet.Cell(i + 2, 1).Value = kepemilikans[i].Name;
-            kepemilikanRefSheet.Columns().AdjustToContents();
-        
-            // Sheet referensi Jabatan
+                .Where(x => !x.IsDeleted && x.IsActive).OrderBy(x => x.Name).ToListAsync();
+            AddReferenceSheet(workbook, "Referensi Kepemilikan", new[] { "Kepemilikan (Valid)" },
+                kepemilikans.Select(x => new[] { x.Name }).ToList());
+
+            // ---- Sheet referensi Jabatan ----
             var jabatans = await _context.Jabatans
+                .Where(x => !x.IsDeleted && x.IsActive).OrderBy(x => x.Name).ToListAsync();
+            AddReferenceSheet(workbook, "Referensi Jabatan", new[] { "Jabatan (Valid)" },
+                jabatans.Select(x => new[] { x.Name }).ToList());
+
+            // ---- Sheet referensi Pejabat (NoPekerja + Nama + Jabatan) ----
+            // Diurutkan per Jabatan supaya user mudah mencocokkan
+            var pekerjas = await _context.Pekerjas
+                .Include(p => p.Jabatan)
                 .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.Name)
+                .OrderBy(x => x.Jabatan != null ? x.Jabatan.Name : string.Empty)
+                .ThenBy(x => x.NamaPekerja)
                 .ToListAsync();
-        
-            var jabatanRefSheet = workbook.Worksheets.Add("Referensi Jabatan");
-            jabatanRefSheet.Cell(1, 1).Value = "Jabatan (Valid)";
-            jabatanRefSheet.Cell(1, 1).Style.Font.Bold = true;
-            for (var i = 0; i < jabatans.Count; i++)
-                jabatanRefSheet.Cell(i + 2, 1).Value = jabatans[i].Name;
-            jabatanRefSheet.Columns().AdjustToContents();
-        
+            AddReferenceSheet(workbook, "Referensi Pejabat",
+                new[] { "NoPekerja (Valid)", "Nama Pekerja", "Jabatan" },
+                pekerjas.Select(x => new[]
+                {
+                    x.NoPekerja,
+                    x.NamaPekerja,
+                    x.Jabatan?.Name ?? string.Empty
+                }).ToList());
+
             byte[] bytes;
             using (var ms = new MemoryStream())
             {
                 workbook.SaveAs(ms);
                 bytes = ms.ToArray();
             }
-        
-            var resultStream = new MemoryStream(bytes);
-        
+
             return ApiResponse<FileResult>.Ok(new FileResult
             {
                 FileName = "Template_Upload_Kendaraan.xlsx",
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                FileStream = resultStream
+                FileStream = new MemoryStream(bytes)
             });
         }
-        
-        // =========================================================
-        // HELPERS (private, khusus import Kendaraan)
-        // =========================================================
-        
-        private static Dictionary<string, int> BuildKendaraanImportHeaderMap(IXLWorksheet sheet, int headerRow)
-        {
-            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-            var lastColumn = sheet.RangeUsed()?.LastColumn().ColumnNumber() ?? 0;
-        
-            for (var column = 1; column <= lastColumn; column++)
-            {
-                var header = sheet.Cell(headerRow, column).GetString()?.Trim();
-                if (string.IsNullOrWhiteSpace(header)) continue;
-        
-                var normalized = NormalizeKendaraanImportHeader(header);
-                if (!result.ContainsKey(normalized))
-                    result.Add(normalized, column);
-            }
-        
-            return result;
-        }
-        
-        private static string NormalizeKendaraanImportHeader(string value) =>
-            new(value.Trim().ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
-        
-        private static string GetKendaraanImportCellText(
-            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap, string header)
-        {
-            var normalized = NormalizeKendaraanImportHeader(header);
-            if (!headerMap.TryGetValue(normalized, out var column))
-                return string.Empty;
-        
-            return sheet.Cell(row, column).GetString()?.Trim() ?? string.Empty;
-        }
-        
-        private static bool IsKendaraanImportRowEmpty(
-            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap)
-        {
-            var nopol = GetKendaraanImportCellText(sheet, row, headerMap, "Nopol");
-            var merek = GetKendaraanImportCellText(sheet, row, headerMap, "Merek");
-            return string.IsNullOrWhiteSpace(nopol) && string.IsNullOrWhiteSpace(merek);
-        }
-        
-        private static void ValidateKendaraanRequiredField(
-            List<ImportRowError> errors, int row, string column, string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                errors.Add(new ImportRowError
-                {
-                    RowNumber = row,
-                    Column = column,
-                    Message = $"Data wajib '{column}' kosong."
-                });
-            }
-        }
 
-        /// <summary>
-        /// Memastikan semua referensi master data (Tipe, BahanBakar, Kepemilikan,
-        /// Jabatan) valid dan tidak terhapus, dan Pekerja (jika diisi) juga valid.
-        /// </summary>
+        // =========================================================
+        // VALIDATE REFERENCES (Create & Update)
+        // =========================================================
+
         private async Task<(string code, string message)?> ValidateReferencesAsync(
             string tipeId, string bahanBakarId,
             string kepemilikanId, string jabatanId, string? pekerjaId)
@@ -681,6 +742,10 @@ namespace ApiService.Application.Services
             return null;
         }
 
+        // =========================================================
+        // MAP TO DTO
+        // =========================================================
+
         private static KendaraanDto MapToDto(Kendaraan k) => new()
         {
             Id = k.Id,
@@ -700,5 +765,76 @@ namespace ApiService.Application.Services
             CreatedAt = k.CreatedAt,
             ModifiedAt = k.ModifiedAt
         };
+
+        // =========================================================
+        // IMPORT HELPERS (private)
+        // =========================================================
+
+        private static Dictionary<string, int> BuildImportHeaderMap(IXLWorksheet sheet, int headerRow)
+        {
+            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var lastColumn = sheet.RangeUsed()?.LastColumn().ColumnNumber() ?? 0;
+
+            for (var col = 1; col <= lastColumn; col++)
+            {
+                var header = sheet.Cell(headerRow, col).GetString()?.Trim();
+                if (string.IsNullOrWhiteSpace(header)) continue;
+
+                var normalized = NormalizeHeader(header);
+                if (!result.ContainsKey(normalized))
+                    result.Add(normalized, col);
+            }
+
+            return result;
+        }
+
+        private static string NormalizeHeader(string value) =>
+            new(value.Trim().ToLowerInvariant().Where(char.IsLetterOrDigit).ToArray());
+
+        private static string GetCellText(
+            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap, string header)
+        {
+            var normalized = NormalizeHeader(header);
+            if (!headerMap.TryGetValue(normalized, out var col)) return string.Empty;
+            return sheet.Cell(row, col).GetString()?.Trim() ?? string.Empty;
+        }
+
+        private static bool IsImportRowEmpty(
+            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap)
+        {
+            var nopol = GetCellText(sheet, row, headerMap, "Nopol");
+            var merek = GetCellText(sheet, row, headerMap, "Merek");
+            return string.IsNullOrWhiteSpace(nopol) && string.IsNullOrWhiteSpace(merek);
+        }
+
+        private static void ValidateRequired(
+            List<ImportRowError> errors, int row, string column, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                errors.Add(new ImportRowError
+                {
+                    RowNumber = row,
+                    Column = column,
+                    Message = $"Data wajib '{column}' kosong."
+                });
+        }
+
+        private static void AddReferenceSheet(
+            XLWorkbook workbook, string sheetName, string[] headers, List<string[]> rows)
+        {
+            var refSheet = workbook.Worksheets.Add(sheetName);
+
+            for (var i = 0; i < headers.Length; i++)
+            {
+                refSheet.Cell(1, i + 1).Value = headers[i];
+                refSheet.Cell(1, i + 1).Style.Font.Bold = true;
+            }
+
+            for (var r = 0; r < rows.Count; r++)
+                for (var c = 0; c < rows[r].Length; c++)
+                    refSheet.Cell(r + 2, c + 1).Value = rows[r][c];
+
+            refSheet.Columns().AdjustToContents();
+        }
     }
 }

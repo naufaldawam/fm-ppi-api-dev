@@ -1,15 +1,15 @@
+using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Application.Services;
 using ApiService.API.Filters;
-using System.IO;
 
 namespace ApiService.API.Controllers
 {
     /// <summary>
-    /// Data Master > Kendaraan. Referensi ke Tipe, Bahan Bakar, Vendor, Kepemilikan,
+    /// Data Master > Kendaraan. Referensi ke Tipe, Bahan Bakar, Kepemilikan,
     /// Jabatan (alokasi jabatan) dan Pekerja (pejabat pemegang - opsional).
     /// </summary>
     [ApiController]
@@ -28,8 +28,8 @@ namespace ApiService.API.Controllers
             ILogger<KendaraanController> logger)
         {
             _kendaraanService = kendaraanService;
-            _currentUser = currentUser;
-            _logger = logger;
+            _currentUser      = currentUser;
+            _logger           = logger;
         }
 
         [HttpGet]
@@ -46,6 +46,22 @@ namespace ApiService.API.Controllers
         {
             var result = await _kendaraanService.GetLookupAsync(search, activeOnly);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Lookup Pejabat (Pekerja) yang jabatannya sesuai dengan Alokasi Jabatan yang dipilih.
+        /// Digunakan frontend untuk mem-filter dropdown Pejabat setelah user memilih Jabatan kendaraan.
+        /// GET /kendaraan/pekerja-lookup?jabatanId=xxx&search=yyy&activeOnly=true
+        /// </summary>
+        [HttpGet("pekerja-lookup")]
+        [RequirePermission("kendaraan.read")]
+        public async Task<IActionResult> GetPekerjaLookup(
+            [FromQuery] string jabatanId,
+            [FromQuery] string? search,
+            [FromQuery] bool activeOnly = true)
+        {
+            var result = await _kendaraanService.GetPekerjaLookupByJabatanAsync(jabatanId, search, activeOnly);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("{id}")]
@@ -104,8 +120,8 @@ namespace ApiService.API.Controllers
 
         /// <summary>
         /// Bulk upload data Kendaraan dari file Excel (.xlsx).
-        /// Kolom wajib: Nopol | Merek | Tipe | BahanBakar | Vendor | Kepemilikan | Jabatan.
-        /// Gunakan endpoint download-template untuk mendapatkan file template beserta sheet referensi.
+        /// Kolom wajib: Nopol | Merek | Tipe | BahanBakar | Kepemilikan | Jabatan
+        /// Kolom opsional: NoPekerja (pejabat pemegang — jabatannya harus cocok dengan kolom Jabatan)
         /// </summary>
         [HttpPost("import-excel")]
         [RequirePermission("kendaraan.create")]
@@ -135,6 +151,5 @@ namespace ApiService.API.Controllers
 
             return StatusCode(result.StatusCode, result);
         }
-
     }
 }

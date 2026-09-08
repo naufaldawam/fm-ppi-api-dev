@@ -691,6 +691,7 @@ namespace ApiService.Application.DTOs
         public string BahanBakarName { get; set; } = string.Empty;
         public string KepemilikanName { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
     }
 
     public class KendaraanImportPreviewDto
@@ -701,6 +702,7 @@ namespace ApiService.Application.DTOs
         public string BahanBakarName { get; set; } = string.Empty;
         public string KepemilikanName { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
+        public string NamaPejabat { get; set; } = string.Empty;
     }
 
     public class KendaraanImportResponse
