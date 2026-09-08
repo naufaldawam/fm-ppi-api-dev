@@ -644,7 +644,7 @@ namespace ApiService.Application.Services
             headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
             // Baris contoh (italic abu-abu, boleh ditimpa/dihapus)
-            var exampleValues = new[] { "B1234XYZ", "Toyota Innova", "MPV", "Bensin", "Dinas", "Manager", "19280027 (opsional)" };
+            var exampleValues = new[] { "B1234XYZ", "Toyota Innova", "MPV", "Bensin", "Dinas", "Manager", "19280027" };
             for (var i = 0; i < exampleValues.Length; i++)
                 sheet.Cell(2, i + 1).Value = exampleValues[i];
             sheet.Range(2, 1, 2, headers.Length).Style.Font.Italic = true;
