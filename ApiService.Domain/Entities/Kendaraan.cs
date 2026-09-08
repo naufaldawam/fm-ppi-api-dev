@@ -4,7 +4,7 @@ namespace ApiService.Domain.Entities
 {
     /// <summary>
     /// Data master Kendaraan (Data Master &gt; Kendaraan).
-    /// Mereferensikan MasterTipe, MasterBahanBakar, MasterVendor, MasterKepemilikan,
+    /// Mereferensikan MasterTipe, MasterBahanBakar, MasterKepemilikan,
     /// MasterJabatan (alokasi jabatan) dan opsional Pekerja (pejabat pemegang kendaraan).
     /// </summary>
     public class Kendaraan : BaseEntity
@@ -24,10 +24,6 @@ namespace ApiService.Domain.Entities
         [Required]
         [MaxLength(100)]
         public string Merek { get; set; } = string.Empty;
-
-        [Required]
-        public string VendorId { get; set; } = string.Empty;
-        public MasterVendor? Vendor { get; set; }
 
         [Required]
         public string KepemilikanId { get; set; } = string.Empty;
