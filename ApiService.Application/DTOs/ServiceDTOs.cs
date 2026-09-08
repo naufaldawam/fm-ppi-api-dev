@@ -685,7 +685,6 @@ namespace ApiService.Application.DTOs
 
     // ===================================
     // KENDARAAN - BULK UPLOAD
-    // Tambahkan bagian ini ke dalam ServiceDTOs.cs, setelah blok KendaraanFilterRequest
     // Kolom template: Nopol | Merek | Tipe | BahanBakar | Vendor | Kepemilikan | Jabatan
     // (pakai Name sebagai key lookup, karena Name bersifat unique per master)
     // ===================================
@@ -771,6 +770,43 @@ namespace ApiService.Application.DTOs
         public int InsertedPekerja { get; set; }
         public List<ImportRowError> Errors { get; set; } = new();
         public List<PekerjaImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ===================================
+    // DRIVER - BULK UPLOAD
+    // Kolom template: NoPekerja | NamaDriver | NoHp | Email | Vendor | NoPekerjaAtasan
+    // Lookup Vendor via Name; lookup Atasan via NoPekerja (unique di master Pekerja)
+    // ===================================
+
+    public class DriverImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoHp { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string NoPekerjaAtasan { get; set; } = string.Empty;
+    }
+
+    public class DriverImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoHp { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string NamaPekerjaAtasan { get; set; } = string.Empty;
+    }
+
+    public class DriverImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedDriver { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<DriverImportPreviewDto> Preview { get; set; } = new();
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).
