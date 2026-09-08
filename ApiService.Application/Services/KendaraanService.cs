@@ -367,7 +367,7 @@ namespace ApiService.Application.Services
                         BahanBakarName = GetCellText(sheet, row, headerMap, "BahanBakar"),
                         KepemilikanName = GetCellText(sheet, row, headerMap, "Kepemilikan"),
                         JabatanName = GetCellText(sheet, row, headerMap, "Jabatan"),
-                        NoPekerja = GetCellText(sheet, row, headerMap, "NoPekerjaAtasan"),
+                        NoPekerja = GetCellText(sheet, row, headerMap, "NoPekerja"),
                     };
 
                     // Required fields
@@ -633,7 +633,7 @@ namespace ApiService.Application.Services
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Kendaraan");
 
-            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Kepemilikan", "Jabatan", "NoPekerja" };
+            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Kepemilikan", "Jabatan", "NoPekerjaAtasan" };
             for (var i = 0; i < headers.Length; i++)
                 sheet.Cell(KendaraanImportHeaderRow, i + 1).Value = headers[i];
 
