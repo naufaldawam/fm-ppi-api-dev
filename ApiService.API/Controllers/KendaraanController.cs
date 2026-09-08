@@ -133,7 +133,7 @@ namespace ApiService.API.Controllers
                 "Import Kendaraan | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
                 file.FileName, file.Length, userId, result.Success);
 
-            return Ok(result);
+            return StatusCode(result.StatusCode, result);
         }
 
     }
