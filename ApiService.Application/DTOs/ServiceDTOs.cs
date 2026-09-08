@@ -684,6 +684,46 @@ namespace ApiService.Application.DTOs
     }
 
     // ===================================
+    // KENDARAAN - BULK UPLOAD
+    // Tambahkan bagian ini ke dalam ServiceDTOs.cs, setelah blok KendaraanFilterRequest
+    // Kolom template: Nopol | Merek | Tipe | BahanBakar | Vendor | Kepemilikan | Jabatan
+    // (pakai Name sebagai key lookup, karena Name bersifat unique per master)
+    // ===================================
+
+    public class KendaraanImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string TipeName { get; set; } = string.Empty;
+        public string BahanBakarName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string KepemilikanName { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class KendaraanImportPreviewDto
+    {
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string Merek { get; set; } = string.Empty;
+        public string TipeName { get; set; } = string.Empty;
+        public string BahanBakarName { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
+        public string KepemilikanName { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+    }
+
+    public class KendaraanImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedKendaraan { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<KendaraanImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ===================================
     // SHARED: BULK UPLOAD (dipakai semua modul: Pekerja, RF.ID, Driver, Kendaraan, dst.)
     // ===================================
 
