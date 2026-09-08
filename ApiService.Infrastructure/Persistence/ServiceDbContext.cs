@@ -140,7 +140,7 @@ namespace ApiService.Infrastructure.Persistence
                     .Metadata.SetValueComparer(rfIdsComparer);
             });
 
-                        // ------------------------------------------------------------
+            // ------------------------------------------------------------
             // KENDARAAN (Data Master > Kendaraan)
             // ------------------------------------------------------------
             modelBuilder.Entity<Kendaraan>(entity =>
@@ -161,11 +161,6 @@ namespace ApiService.Infrastructure.Persistence
                     .HasForeignKey(e => e.BahanBakarId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(e => e.Vendor)
-                    .WithMany()
-                    .HasForeignKey(e => e.VendorId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
                 entity.HasOne(e => e.Kepemilikan)
                     .WithMany()
                     .HasForeignKey(e => e.KepemilikanId)
@@ -184,7 +179,7 @@ namespace ApiService.Infrastructure.Persistence
                     .IsRequired(false);
             });
 
-                        // ------------------------------------------------------------
+            // ------------------------------------------------------------
             // RF.ID (Data Master > RF.ID)
             // ------------------------------------------------------------
             modelBuilder.Entity<RfId>(entity =>

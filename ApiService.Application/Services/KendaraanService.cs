@@ -37,7 +37,6 @@ namespace ApiService.Application.Services
             _context.Kendaraans
                 .Include(k => k.Tipe)
                 .Include(k => k.BahanBakar)
-                .Include(k => k.Vendor)
                 .Include(k => k.Kepemilikan)
                 .Include(k => k.Jabatan)
                 .Include(k => k.Pekerja)
@@ -57,9 +56,6 @@ namespace ApiService.Application.Services
 
             if (!string.IsNullOrEmpty(filter.BahanBakarId))
                 query = query.Where(k => k.BahanBakarId == filter.BahanBakarId);
-
-            if (!string.IsNullOrEmpty(filter.VendorId))
-                query = query.Where(k => k.VendorId == filter.VendorId);
 
             if (!string.IsNullOrEmpty(filter.KepemilikanId))
                 query = query.Where(k => k.KepemilikanId == filter.KepemilikanId);
@@ -128,7 +124,7 @@ namespace ApiService.Application.Services
                 return ApiResponse<KendaraanDto>.ErrorResponse("ERR-KENDARAAN-002", "Nomor polisi sudah terdaftar");
 
             var refError = await ValidateReferencesAsync(
-                request.TipeId, request.BahanBakarId, request.VendorId,
+                request.TipeId, request.BahanBakarId,
                 request.KepemilikanId, request.JabatanId, request.PekerjaId);
 
             if (refError != null)
@@ -140,7 +136,6 @@ namespace ApiService.Application.Services
                 TipeId = request.TipeId,
                 BahanBakarId = request.BahanBakarId,
                 Merek = request.Merek,
-                VendorId = request.VendorId,
                 KepemilikanId = request.KepemilikanId,
                 JabatanId = request.JabatanId,
                 PekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId,
@@ -170,7 +165,7 @@ namespace ApiService.Application.Services
                 return ApiResponse<KendaraanDto>.ErrorResponse("ERR-KENDARAAN-002", "Nomor polisi sudah terdaftar");
 
             var refError = await ValidateReferencesAsync(
-                request.TipeId, request.BahanBakarId, request.VendorId,
+                request.TipeId, request.BahanBakarId,
                 request.KepemilikanId, request.JabatanId, request.PekerjaId);
 
             if (refError != null)
@@ -180,7 +175,6 @@ namespace ApiService.Application.Services
             kendaraan.TipeId = request.TipeId;
             kendaraan.BahanBakarId = request.BahanBakarId;
             kendaraan.Merek = request.Merek;
-            kendaraan.VendorId = request.VendorId;
             kendaraan.KepemilikanId = request.KepemilikanId;
             kendaraan.JabatanId = request.JabatanId;
             kendaraan.PekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId;
@@ -216,12 +210,12 @@ namespace ApiService.Application.Services
         
         private static readonly string[] KendaraanRequiredImportHeaders =
         {
-            "nopol", "merek", "tipe", "bahanbakar", "vendor", "kepemilikan", "jabatan"
+            "nopol", "merek", "tipe", "bahanbakar", "kepemilikan", "jabatan"
         };
         
         // =========================================================
         // BULK UPLOAD KENDARAAN
-        // Template kolom: Nopol | Merek | Tipe | BahanBakar | Vendor | Kepemilikan | Jabatan
+        // Template kolom: Nopol | Merek | Tipe | BahanBakar | Kepemilikan | Jabatan
         // Semua lookup via Name (bukan Id) karena user tidak tahu Id master data
         // =========================================================
         
@@ -274,7 +268,6 @@ namespace ApiService.Application.Services
                         Merek          = GetKendaraanImportCellText(sheet, row, headerMap, "Merek"),
                         TipeName       = GetKendaraanImportCellText(sheet, row, headerMap, "Tipe"),
                         BahanBakarName = GetKendaraanImportCellText(sheet, row, headerMap, "BahanBakar"),
-                        VendorName     = GetKendaraanImportCellText(sheet, row, headerMap, "Vendor"),
                         KepemilikanName = GetKendaraanImportCellText(sheet, row, headerMap, "Kepemilikan"),
                         JabatanName    = GetKendaraanImportCellText(sheet, row, headerMap, "Jabatan"),
                     };
@@ -283,7 +276,6 @@ namespace ApiService.Application.Services
                     ValidateKendaraanRequiredField(response.Errors, row, "Merek",       parsedRow.Merek);
                     ValidateKendaraanRequiredField(response.Errors, row, "Tipe",        parsedRow.TipeName);
                     ValidateKendaraanRequiredField(response.Errors, row, "BahanBakar",  parsedRow.BahanBakarName);
-                    ValidateKendaraanRequiredField(response.Errors, row, "Vendor",      parsedRow.VendorName);
                     ValidateKendaraanRequiredField(response.Errors, row, "Kepemilikan", parsedRow.KepemilikanName);
                     ValidateKendaraanRequiredField(response.Errors, row, "Jabatan",     parsedRow.JabatanName);
         
@@ -348,7 +340,6 @@ namespace ApiService.Application.Services
                 // =========================
                 var tipes        = await _context.Tipes.Where(x => !x.IsDeleted).ToListAsync();
                 var bahanBakars  = await _context.BahanBakars.Where(x => !x.IsDeleted).ToListAsync();
-                var vendors      = await _context.Vendors.Where(x => !x.IsDeleted).ToListAsync();
                 var kepemilikans = await _context.Kepemilikans.Where(x => !x.IsDeleted).ToListAsync();
                 var jabatans     = await _context.Jabatans.Where(x => !x.IsDeleted).ToListAsync();
         
@@ -376,17 +367,6 @@ namespace ApiService.Application.Services
                             RowNumber = row.RowNumber,
                             Column = "BahanBakar",
                             Message = $"BahanBakar '{row.BahanBakarName}' tidak ditemukan pada master BahanBakar."
-                        });
-                    }
-        
-                    if (!string.IsNullOrWhiteSpace(row.VendorName) &&
-                        !vendors.Any(x => string.Equals(x.Name.Trim(), row.VendorName.Trim(), StringComparison.OrdinalIgnoreCase)))
-                    {
-                        response.Errors.Add(new ImportRowError
-                        {
-                            RowNumber = row.RowNumber,
-                            Column = "Vendor",
-                            Message = $"Vendor '{row.VendorName}' tidak ditemukan pada master Vendor."
                         });
                     }
         
@@ -437,7 +417,6 @@ namespace ApiService.Application.Services
                 {
                     var tipe       = tipes.First(x => string.Equals(x.Name.Trim(), row.TipeName.Trim(), StringComparison.OrdinalIgnoreCase));
                     var bahanBakar = bahanBakars.First(x => string.Equals(x.Name.Trim(), row.BahanBakarName.Trim(), StringComparison.OrdinalIgnoreCase));
-                    var vendor     = vendors.First(x => string.Equals(x.Name.Trim(), row.VendorName.Trim(), StringComparison.OrdinalIgnoreCase));
                     var kepemilikan = kepemilikans.First(x => string.Equals(x.Name.Trim(), row.KepemilikanName.Trim(), StringComparison.OrdinalIgnoreCase));
                     var jabatan    = jabatans.First(x => string.Equals(x.Name.Trim(), row.JabatanName.Trim(), StringComparison.OrdinalIgnoreCase));
         
@@ -447,7 +426,6 @@ namespace ApiService.Application.Services
                         Merek        = row.Merek.Trim(),
                         TipeId       = tipe.Id,
                         BahanBakarId = bahanBakar.Id,
-                        VendorId     = vendor.Id,
                         KepemilikanId = kepemilikan.Id,
                         JabatanId    = jabatan.Id,
                         PekerjaId    = null,   // bulk upload tidak mengisi pejabat pemegang
@@ -466,7 +444,6 @@ namespace ApiService.Application.Services
                             Merek          = kendaraan.Merek,
                             TipeName       = tipe.Name,
                             BahanBakarName = bahanBakar.Name,
-                            VendorName     = vendor.Name,
                             KepemilikanName = kepemilikan.Name,
                             JabatanName    = jabatan.Name
                         });
@@ -521,7 +498,7 @@ namespace ApiService.Application.Services
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Kendaraan");
         
-            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Vendor", "Kepemilikan", "Jabatan" };
+            var headers = new[] { "Nopol", "Merek", "Tipe", "BahanBakar", "Kepemilikan", "Jabatan" };
             for (var i = 0; i < headers.Length; i++)
                 sheet.Cell(KendaraanImportHeaderRow, i + 1).Value = headers[i];
         
@@ -569,19 +546,6 @@ namespace ApiService.Application.Services
             for (var i = 0; i < bahanBakars.Count; i++)
                 bahanBakarRefSheet.Cell(i + 2, 1).Value = bahanBakars[i].Name;
             bahanBakarRefSheet.Columns().AdjustToContents();
-        
-            // Sheet referensi Vendor
-            var vendors = await _context.Vendors
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.Name)
-                .ToListAsync();
-        
-            var vendorRefSheet = workbook.Worksheets.Add("Referensi Vendor");
-            vendorRefSheet.Cell(1, 1).Value = "Vendor (Valid)";
-            vendorRefSheet.Cell(1, 1).Style.Font.Bold = true;
-            for (var i = 0; i < vendors.Count; i++)
-                vendorRefSheet.Cell(i + 2, 1).Value = vendors[i].Name;
-            vendorRefSheet.Columns().AdjustToContents();
         
             // Sheet referensi Kepemilikan
             var kepemilikans = await _context.Kepemilikans
@@ -684,11 +648,11 @@ namespace ApiService.Application.Services
         }
 
         /// <summary>
-        /// Memastikan semua referensi master data (Tipe, BahanBakar, Vendor, Kepemilikan,
+        /// Memastikan semua referensi master data (Tipe, BahanBakar, Kepemilikan,
         /// Jabatan) valid dan tidak terhapus, dan Pekerja (jika diisi) juga valid.
         /// </summary>
         private async Task<(string code, string message)?> ValidateReferencesAsync(
-            string tipeId, string bahanBakarId, string vendorId,
+            string tipeId, string bahanBakarId,
             string kepemilikanId, string jabatanId, string? pekerjaId)
         {
             var tipeOk = await _context.Tipes.AnyAsync(t => t.Id == tipeId && !t.IsDeleted);
@@ -698,10 +662,6 @@ namespace ApiService.Application.Services
             var bahanBakarOk = await _context.BahanBakars.AnyAsync(b => b.Id == bahanBakarId && !b.IsDeleted);
             if (!bahanBakarOk)
                 return ("ERR-KENDARAAN-004", "Bahan bakar tidak ditemukan");
-
-            var vendorOk = await _context.Vendors.AnyAsync(v => v.Id == vendorId && !v.IsDeleted);
-            if (!vendorOk)
-                return ("ERR-KENDARAAN-005", "Vendor tidak ditemukan");
 
             var kepemilikanOk = await _context.Kepemilikans.AnyAsync(k => k.Id == kepemilikanId && !k.IsDeleted);
             if (!kepemilikanOk)
@@ -730,8 +690,6 @@ namespace ApiService.Application.Services
             BahanBakarId = k.BahanBakarId,
             BahanBakarName = k.BahanBakar?.Name ?? string.Empty,
             Merek = k.Merek,
-            VendorId = k.VendorId,
-            VendorName = k.Vendor?.Name ?? string.Empty,
             KepemilikanId = k.KepemilikanId,
             KepemilikanName = k.Kepemilikan?.Name ?? string.Empty,
             JabatanId = k.JabatanId,

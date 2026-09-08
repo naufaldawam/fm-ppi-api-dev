@@ -160,7 +160,6 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.TipeId).NotEmpty().WithMessage("Tipe harus dipilih");
             RuleFor(x => x.BahanBakarId).NotEmpty().WithMessage("Bahan bakar harus dipilih");
             RuleFor(x => x.Merek).NotEmpty().MaximumLength(100);
-            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
             RuleFor(x => x.KepemilikanId).NotEmpty().WithMessage("Kepemilikan harus dipilih");
             RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Alokasi jabatan harus dipilih");
         }
@@ -174,7 +173,6 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.TipeId).NotEmpty().WithMessage("Tipe harus dipilih");
             RuleFor(x => x.BahanBakarId).NotEmpty().WithMessage("Bahan bakar harus dipilih");
             RuleFor(x => x.Merek).NotEmpty().MaximumLength(100);
-            RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
             RuleFor(x => x.KepemilikanId).NotEmpty().WithMessage("Kepemilikan harus dipilih");
             RuleFor(x => x.JabatanId).NotEmpty().WithMessage("Alokasi jabatan harus dipilih");
         }

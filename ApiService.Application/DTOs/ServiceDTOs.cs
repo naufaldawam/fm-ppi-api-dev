@@ -213,7 +213,7 @@ namespace ApiService.Application.DTOs
         public string Email { get; set; } = string.Empty;
 
     }
-    
+
     public class CreateFeedbackRequest
     {
         public int Rating { get; set; }
@@ -456,7 +456,7 @@ namespace ApiService.Application.DTOs
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup Pekerja (tanpa pagination).</summary>
-        public class PekerjaLookupDto
+    public class PekerjaLookupDto
     {
         public string Id { get; set; } = string.Empty;
         public string NoPekerja { get; set; } = string.Empty;
@@ -476,7 +476,6 @@ namespace ApiService.Application.DTOs
         public string TipeId { get; set; } = string.Empty;
         public string BahanBakarId { get; set; } = string.Empty;
         public string Merek { get; set; } = string.Empty;
-        public string VendorId { get; set; } = string.Empty;
         public string KepemilikanId { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string? PekerjaId { get; set; }
@@ -489,7 +488,6 @@ namespace ApiService.Application.DTOs
         public string TipeId { get; set; } = string.Empty;
         public string BahanBakarId { get; set; } = string.Empty;
         public string Merek { get; set; } = string.Empty;
-        public string VendorId { get; set; } = string.Empty;
         public string KepemilikanId { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string? PekerjaId { get; set; }
@@ -508,10 +506,6 @@ namespace ApiService.Application.DTOs
         public string BahanBakarName { get; set; } = string.Empty;
 
         public string Merek { get; set; } = string.Empty;
-
-        public string VendorId { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
-
         public string KepemilikanId { get; set; } = string.Empty;
         public string KepemilikanName { get; set; } = string.Empty;
 
@@ -539,7 +533,6 @@ namespace ApiService.Application.DTOs
         public string? Search { get; set; }
         public string? TipeId { get; set; }
         public string? BahanBakarId { get; set; }
-        public string? VendorId { get; set; }
         public string? KepemilikanId { get; set; }
         public string? JabatanId { get; set; }
         public bool? IsActive { get; set; }
@@ -696,7 +689,6 @@ namespace ApiService.Application.DTOs
         public string Merek { get; set; } = string.Empty;
         public string TipeName { get; set; } = string.Empty;
         public string BahanBakarName { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
         public string KepemilikanName { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
     }
@@ -707,7 +699,6 @@ namespace ApiService.Application.DTOs
         public string Merek { get; set; } = string.Empty;
         public string TipeName { get; set; } = string.Empty;
         public string BahanBakarName { get; set; } = string.Empty;
-        public string VendorName { get; set; } = string.Empty;
         public string KepemilikanName { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
     }
