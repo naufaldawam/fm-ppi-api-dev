@@ -13,8 +13,8 @@ namespace ApiService.Domain.Entities
         [MaxLength(50)]
         public string RfIdCode { get; set; } = string.Empty;
 
-        [Required]
-        public string PekerjaId { get; set; } = string.Empty;
+        /// <summary>Pemegang RF.ID (Pekerja) - opsional, boleh kosong (kartu belum di-assign / stok).</summary>
+        public string? PekerjaId { get; set; }
         public Pekerja? Pekerja { get; set; }
 
         [Required]

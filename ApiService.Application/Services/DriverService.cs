@@ -102,11 +102,15 @@ namespace ApiService.Application.Services
             if (!vendorOk)
                 return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-004", "Vendor tidak ditemukan");
 
-            var atasanOk = await _context.Pekerjas
-                .AnyAsync(p => p.Id == request.AtasanId && !p.IsDeleted);
+            // Atasan opsional - boleh kosong (mis. selagi kekosongan jabatan atasan)
+            if (!string.IsNullOrEmpty(request.AtasanId))
+            {
+                var atasanOk = await _context.Pekerjas
+                    .AnyAsync(p => p.Id == request.AtasanId && !p.IsDeleted);
 
-            if (!atasanOk)
-                return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-005", "Atasan tidak ditemukan");
+                if (!atasanOk)
+                    return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-005", "Atasan tidak ditemukan");
+            }
 
             var driver = new Driver
             {
@@ -115,7 +119,7 @@ namespace ApiService.Application.Services
                 NoHp = request.NoHp,
                 Email = request.Email,
                 VendorId = request.VendorId,
-                AtasanId = request.AtasanId,
+                AtasanId = string.IsNullOrEmpty(request.AtasanId) ? null : request.AtasanId,
                 IsActive = request.IsActive,
                 CreatedBy = userId
             };
@@ -153,18 +157,31 @@ namespace ApiService.Application.Services
             if (!vendorOk)
                 return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-004", "Vendor tidak ditemukan");
 
-            var atasanOk = await _context.Pekerjas
-                .AnyAsync(p => p.Id == request.AtasanId && !p.IsDeleted);
+            // Atasan opsional - boleh kosong (mis. selagi kekosongan jabatan atasan)
+            if (!string.IsNullOrEmpty(request.AtasanId))
+            {
+                var atasanOk = await _context.Pekerjas
+                    .AnyAsync(p => p.Id == request.AtasanId && !p.IsDeleted);
 
-            if (!atasanOk)
-                return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-005", "Atasan tidak ditemukan");
+                if (!atasanOk)
+                    return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-005", "Atasan tidak ditemukan");
+            }
+
+            // Cek referensi sebelum nonaktifkan (saat ini belum ada entity lain yang
+            // mereferensikan Driver, tapi cek ini disiapkan untuk future-proofing)
+            if (driver.IsActive && !request.IsActive)
+            {
+                var blocker = await GetDeactivationBlockerAsync(driver.Id);
+                if (blocker != null)
+                    return ApiResponse<DriverDto>.ErrorResponse("ERR-DRIVER-006", blocker);
+            }
 
             driver.NoPekerja = request.NoPekerja;
             driver.NamaDriver = request.NamaDriver;
             driver.NoHp = request.NoHp;
             driver.Email = request.Email;
             driver.VendorId = request.VendorId;
-            driver.AtasanId = request.AtasanId;
+            driver.AtasanId = string.IsNullOrEmpty(request.AtasanId) ? null : request.AtasanId;
             driver.IsActive = request.IsActive;
             driver.ModifiedAt = DateTime.UtcNow;
             driver.ModifiedBy = userId;
@@ -264,7 +281,7 @@ namespace ApiService.Application.Services
                     ValidateDriverRequiredField(response.Errors, row, "NoHp", parsedRow.NoHp);
                     ValidateDriverRequiredField(response.Errors, row, "Email", parsedRow.Email);
                     ValidateDriverRequiredField(response.Errors, row, "Vendor", parsedRow.VendorName);
-                    ValidateDriverRequiredField(response.Errors, row, "NoPekerjaAtasan", parsedRow.NoPekerjaAtasan);
+                    // NoPekerjaAtasan sengaja TIDAK wajib diisi - boleh kosong (kekosongan jabatan atasan)
 
                     parsedRows.Add(parsedRow);
                 }
@@ -441,8 +458,11 @@ namespace ApiService.Application.Services
                     var vendor = vendors.First(x =>
                         string.Equals(x.Name.Trim(), row.VendorName.Trim(), StringComparison.OrdinalIgnoreCase));
 
-                    var atasan = pekerjas.First(x =>
-                        string.Equals(x.NoPekerja?.Trim(), row.NoPekerjaAtasan.Trim(), StringComparison.OrdinalIgnoreCase));
+                    // Atasan opsional - boleh kosong (kekosongan jabatan atasan)
+                    var atasan = string.IsNullOrWhiteSpace(row.NoPekerjaAtasan)
+                        ? null
+                        : pekerjas.FirstOrDefault(x =>
+                            string.Equals(x.NoPekerja?.Trim(), row.NoPekerjaAtasan.Trim(), StringComparison.OrdinalIgnoreCase));
 
                     var driver = new Driver
                     {
@@ -451,7 +471,7 @@ namespace ApiService.Application.Services
                         NoHp = row.NoHp.Trim(),
                         Email = row.Email.Trim(),
                         VendorId = vendor.Id,
-                        AtasanId = atasan.Id,
+                        AtasanId = atasan?.Id,
                         IsActive = true,
                         CreatedBy = userId,
                         CreatedAt = now
@@ -468,7 +488,7 @@ namespace ApiService.Application.Services
                             NoHp = driver.NoHp,
                             Email = driver.Email,
                             VendorName = vendor.Name,
-                            NamaPekerjaAtasan = atasan.NamaPekerja
+                            NamaPekerjaAtasan = atasan?.NamaPekerja ?? string.Empty
                         });
                     }
                 }
@@ -657,6 +677,17 @@ namespace ApiService.Application.Services
                     Message = $"Data wajib '{column}' kosong."
                 });
             }
+        }
+
+        /// <summary>
+        /// Cek apakah Driver ini masih dipakai sebagai reference oleh entity lain
+        /// sebelum boleh dinonaktifkan. Saat ini belum ada entity (Kendaraan/Pekerja/RF.ID)
+        /// yang mereferensikan Driver, jadi selalu null - disiapkan untuk future-proofing
+        /// kalau nanti ada modul baru (mis. FuelInput) yang mereferensikan Driver.
+        /// </summary>
+        private Task<string?> GetDeactivationBlockerAsync(string driverId)
+        {
+            return Task.FromResult<string?>(null);
         }
 
         private static DriverDto MapToDto(Driver d) => new()
