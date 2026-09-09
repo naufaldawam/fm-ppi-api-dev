@@ -193,7 +193,8 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Pekerja)
                     .WithMany()
                     .HasForeignKey(e => e.PekerjaId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
 
                 entity.HasOne(e => e.Kendaraan)
                     .WithMany()
@@ -218,10 +219,12 @@ namespace ApiService.Infrastructure.Persistence
                     .HasForeignKey(e => e.VendorId)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                // Atasan - opsional (nullable FK), boleh kosong saat masa transisi jabatan
                 entity.HasOne(e => e.Atasan)
                     .WithMany()
                     .HasForeignKey(e => e.AtasanId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
             });
         }
     }

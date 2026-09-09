@@ -547,7 +547,7 @@ namespace ApiService.Application.DTOs
     public class CreateRfIdRequest
     {
         public string RfIdCode { get; set; } = string.Empty;
-        public string PekerjaId { get; set; } = string.Empty;
+        public string? PekerjaId { get; set; }
         public string KendaraanId { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
     }
@@ -555,7 +555,7 @@ namespace ApiService.Application.DTOs
     public class UpdateRfIdRequest
     {
         public string RfIdCode { get; set; } = string.Empty;
-        public string PekerjaId { get; set; } = string.Empty;
+        public string? PekerjaId { get; set; }
         public string KendaraanId { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
     }
@@ -564,8 +564,7 @@ namespace ApiService.Application.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string RfIdCode { get; set; } = string.Empty;
-
-        public string PekerjaId { get; set; } = string.Empty;
+        public string? PekerjaId { get; set; }
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
 
@@ -631,7 +630,7 @@ namespace ApiService.Application.DTOs
         public string NoHp { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string VendorId { get; set; } = string.Empty;
-        public string AtasanId { get; set; } = string.Empty;
+        public string? AtasanId { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -642,7 +641,7 @@ namespace ApiService.Application.DTOs
         public string NoHp { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string VendorId { get; set; } = string.Empty;
-        public string AtasanId { get; set; } = string.Empty;
+        public string? AtasanId { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -653,11 +652,9 @@ namespace ApiService.Application.DTOs
         public string NamaDriver { get; set; } = string.Empty;
         public string NoHp { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-
         public string VendorId { get; set; } = string.Empty;
         public string VendorName { get; set; } = string.Empty;
-
-        public string AtasanId { get; set; } = string.Empty;
+        public string? AtasanId { get; set; }
         public string AtasanNama { get; set; } = string.Empty;
         public string JabatanAtasan { get; set; } = string.Empty;
 

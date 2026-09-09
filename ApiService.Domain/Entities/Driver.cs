@@ -28,8 +28,8 @@ namespace ApiService.Domain.Entities
         public string VendorId { get; set; } = string.Empty;
         public MasterVendor? Vendor { get; set; }
 
-        [Required]
-        public string AtasanId { get; set; } = string.Empty;
+        /// <summary>Atasan (Pekerja) - opsional, boleh kosong selama masa transisi/kekosongan jabatan.</summary>
+        public string? AtasanId { get; set; }
         public Pekerja? Atasan { get; set; }
 
         public bool IsActive { get; set; } = true;

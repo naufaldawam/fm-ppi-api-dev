@@ -266,6 +266,15 @@ namespace ApiService.Application.Services
                         "Pejabat yang dipilih tidak memiliki jabatan yang sesuai dengan alokasi jabatan kendaraan ini.");
             }
 
+            // Cek referensi sebelum nonaktifkan - Kendaraan bisa dipakai sebagai
+            // Kendaraan (Nopol) di data RF.ID
+            if (kendaraan.IsActive && !request.IsActive)
+            {
+                var blocker = await GetDeactivationBlockerAsync(kendaraan.Id);
+                if (blocker != null)
+                    return ApiResponse<KendaraanDto>.ErrorResponse("ERR-KENDARAAN-010", blocker);
+            }
+
             kendaraan.NomorPolisi = request.NomorPolisi;
             kendaraan.TipeId = request.TipeId;
             kendaraan.BahanBakarId = request.BahanBakarId;
@@ -738,6 +747,19 @@ namespace ApiService.Application.Services
                 if (!pekerjaOk)
                     return ("ERR-KENDARAAN-008", "Pejabat (pekerja) tidak ditemukan");
             }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Cek apakah Kendaraan ini masih dipakai sebagai reference oleh RF.ID
+        /// (kolom Nopol) yang masih hidup (belum di-soft-delete), sebelum boleh
+        /// dinonaktifkan.
+        /// </summary>
+        private async Task<string?> GetDeactivationBlockerAsync(string kendaraanId)
+        {
+            if (await _context.RfIds.AnyAsync(r => r.KendaraanId == kendaraanId && !r.IsDeleted))
+                return "Kendaraan masih memiliki RF.ID yang ter-assign, tidak bisa dinonaktifkan.";
 
             return null;
         }

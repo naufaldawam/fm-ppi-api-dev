@@ -162,6 +162,15 @@ namespace ApiService.Application.Services
             if (jabatan == null)
                 return ApiResponse<PekerjaDto>.ErrorResponse("ERR-PEKERJA-003", "Jabatan tidak ditemukan");
 
+            // Cek referensi sebelum nonaktifkan - Pekerja bisa dipakai sebagai
+            // Pejabat kendaraan, Atasan driver, atau pemegang RF.ID
+            if (pekerja.IsActive && !request.IsActive)
+            {
+                var blocker = await GetDeactivationBlockerAsync(pekerja.Id);
+                if (blocker != null)
+                    return ApiResponse<PekerjaDto>.ErrorResponse("ERR-PEKERJA-004", blocker);
+            }
+
             pekerja.NoPekerja = request.NoPekerja;
             pekerja.NopekHome = request.NopekHome;
             pekerja.NopekHost = request.NopekHost;
@@ -545,6 +554,25 @@ namespace ApiService.Application.Services
                     Message = $"Data wajib '{column}' kosong."
                 });
             }
+        }
+
+        /// <summary>
+        /// Cek apakah Pekerja ini masih dipakai sebagai reference oleh Kendaraan (Pejabat),
+        /// Driver (Atasan), atau RF.ID (pemegang) yang masih hidup (belum di-soft-delete),
+        /// sebelum boleh dinonaktifkan.
+        /// </summary>
+        private async Task<string?> GetDeactivationBlockerAsync(string pekerjaId)
+        {
+            if (await _context.Kendaraans.AnyAsync(k => k.PekerjaId == pekerjaId && !k.IsDeleted))
+                return "Pekerja masih menjadi Pejabat pemegang pada data Kendaraan, tidak bisa dinonaktifkan.";
+
+            if (await _context.Drivers.AnyAsync(d => d.AtasanId == pekerjaId && !d.IsDeleted))
+                return "Pekerja masih menjadi Atasan pada data Driver, tidak bisa dinonaktifkan.";
+
+            if (await _context.RfIds.AnyAsync(r => r.PekerjaId == pekerjaId && !r.IsDeleted))
+                return "Pekerja masih memiliki RF.ID yang ter-assign, tidak bisa dinonaktifkan.";
+
+            return null;
         }
 
         private static PekerjaDto MapToDto(Pekerja p) => new()

@@ -92,11 +92,16 @@ namespace ApiService.Application.Services
             if (codeExists)
                 return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-002", "RF.ID sudah terdaftar");
 
-            var pekerja = await _context.Pekerjas
-                .FirstOrDefaultAsync(p => p.Id == request.PekerjaId && !p.IsDeleted);
+            // Pekerja opsional - RF.ID boleh belum di-assign (mis. kartu masih stok / atasan kosong sementara)
+            Pekerja? pekerja = null;
+            if (!string.IsNullOrEmpty(request.PekerjaId))
+            {
+                pekerja = await _context.Pekerjas
+                    .FirstOrDefaultAsync(p => p.Id == request.PekerjaId && !p.IsDeleted);
 
-            if (pekerja == null)
-                return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-003", "Pekerja tidak ditemukan");
+                if (pekerja == null)
+                    return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-003", "Pekerja tidak ditemukan");
+            }
 
             var kendaraanOk = await _context.Kendaraans
                 .AnyAsync(k => k.Id == request.KendaraanId && !k.IsDeleted);
@@ -107,7 +112,7 @@ namespace ApiService.Application.Services
             var rfid = new RfId
             {
                 RfIdCode = request.RfIdCode,
-                PekerjaId = request.PekerjaId,
+                PekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId,
                 KendaraanId = request.KendaraanId,
                 IsActive = request.IsActive,
                 CreatedBy = userId
@@ -115,8 +120,9 @@ namespace ApiService.Application.Services
 
             _context.RfIds.Add(rfid);
 
-            // Sinkronkan ke Pekerja.RfIds
-            AddCodeToPekerja(pekerja, request.RfIdCode);
+            // Sinkronkan ke Pekerja.RfIds (hanya kalau ada pekerja yang di-assign)
+            if (pekerja != null)
+                AddCodeToPekerja(pekerja, request.RfIdCode);
 
             await _context.SaveChangesAsync();
 
@@ -138,11 +144,16 @@ namespace ApiService.Application.Services
             if (codeExists)
                 return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-002", "RF.ID sudah terdaftar");
 
-            var newPekerja = await _context.Pekerjas
-                .FirstOrDefaultAsync(p => p.Id == request.PekerjaId && !p.IsDeleted);
+            // Pekerja opsional - RF.ID boleh dilepas assignment-nya (jadi tidak dipegang siapapun)
+            Pekerja? newPekerja = null;
+            if (!string.IsNullOrEmpty(request.PekerjaId))
+            {
+                newPekerja = await _context.Pekerjas
+                    .FirstOrDefaultAsync(p => p.Id == request.PekerjaId && !p.IsDeleted);
 
-            if (newPekerja == null)
-                return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-003", "Pekerja tidak ditemukan");
+                if (newPekerja == null)
+                    return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-003", "Pekerja tidak ditemukan");
+            }
 
             var kendaraanOk = await _context.Kendaraans
                 .AnyAsync(k => k.Id == request.KendaraanId && !k.IsDeleted);
@@ -150,24 +161,37 @@ namespace ApiService.Application.Services
             if (!kendaraanOk)
                 return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-004", "Kendaraan (Nopol) tidak ditemukan");
 
+            // Cek referensi sebelum nonaktifkan (saat ini belum ada entity lain yang
+            // mereferensikan RF.ID, tapi cek ini disiapkan untuk future-proofing)
+            if (rfid.IsActive && !request.IsActive)
+            {
+                var blocker = await GetDeactivationBlockerAsync(rfid.Id);
+                if (blocker != null)
+                    return ApiResponse<RfIdDto>.ErrorResponse("ERR-RFID-005", blocker);
+            }
+
             var oldCode = rfid.RfIdCode;
             var oldPekerjaId = rfid.PekerjaId;
+            var newPekerjaId = string.IsNullOrEmpty(request.PekerjaId) ? null : request.PekerjaId;
 
             // Lepas assignment lama & pasang assignment baru kalau Pekerja atau kodenya berubah
-            if (oldPekerjaId != request.PekerjaId || oldCode != request.RfIdCode)
+            if (oldPekerjaId != newPekerjaId || oldCode != request.RfIdCode)
             {
-                var oldPekerja = oldPekerjaId == request.PekerjaId
+                var oldPekerja = oldPekerjaId == newPekerjaId
                     ? newPekerja
-                    : await _context.Pekerjas.FirstOrDefaultAsync(p => p.Id == oldPekerjaId);
+                    : (string.IsNullOrEmpty(oldPekerjaId)
+                        ? null
+                        : await _context.Pekerjas.FirstOrDefaultAsync(p => p.Id == oldPekerjaId));
 
                 if (oldPekerja != null)
                     RemoveCodeFromPekerja(oldPekerja, oldCode);
 
-                AddCodeToPekerja(newPekerja, request.RfIdCode);
+                if (newPekerja != null)
+                    AddCodeToPekerja(newPekerja, request.RfIdCode);
             }
 
             rfid.RfIdCode = request.RfIdCode;
-            rfid.PekerjaId = request.PekerjaId;
+            rfid.PekerjaId = newPekerjaId;
             rfid.KendaraanId = request.KendaraanId;
             rfid.IsActive = request.IsActive;
             rfid.ModifiedAt = DateTime.UtcNow;
@@ -187,9 +211,12 @@ namespace ApiService.Application.Services
             if (rfid == null)
                 return ApiResponse<bool>.ErrorResponse("ERR-RFID-001", "RF.ID not found");
 
-            var pekerja = await _context.Pekerjas.FirstOrDefaultAsync(p => p.Id == rfid.PekerjaId);
-            if (pekerja != null)
-                RemoveCodeFromPekerja(pekerja, rfid.RfIdCode);
+            if (!string.IsNullOrEmpty(rfid.PekerjaId))
+            {
+                var pekerja = await _context.Pekerjas.FirstOrDefaultAsync(p => p.Id == rfid.PekerjaId);
+                if (pekerja != null)
+                    RemoveCodeFromPekerja(pekerja, rfid.RfIdCode);
+            }
 
             rfid.IsDeleted = true;
             rfid.DeletedAt = DateTime.UtcNow;
@@ -200,7 +227,17 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "RF.ID deleted");
         }
 
-                // =========================================================
+        /// <summary>
+        /// Cek apakah RF.ID ini masih dipakai sebagai reference oleh entity lain sebelum
+        /// boleh dinonaktifkan. Saat ini belum ada entity lain yang mereferensikan RF.ID,
+        /// jadi selalu null - disiapkan untuk future-proofing.
+        /// </summary>
+        private Task<string?> GetDeactivationBlockerAsync(string rfIdId)
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        // =========================================================
         // BULK UPLOAD RF.ID
         // Template kolom: RF.ID | No.Pekerja | Nopol
         // (pakai No.Pekerja & Nopol sebagai key lookup karena keduanya unique)
@@ -265,7 +302,7 @@ namespace ApiService.Application.Services
                     };
 
                     ValidateRequiredImportField(response.Errors, row, "RF.ID", parsedRow.RfIdCode);
-                    ValidateRequiredImportField(response.Errors, row, "No.Pekerja", parsedRow.NoPekerja);
+                    // No.Pekerja sengaja TIDAK wajib diisi - boleh kosong (rfid belum di-assign)
                     ValidateRequiredImportField(response.Errors, row, "Nopol", parsedRow.Nopol);
 
                     parsedRows.Add(parsedRow);
@@ -397,8 +434,11 @@ namespace ApiService.Application.Services
 
                 foreach (var row in parsedRows)
                 {
-                    var pekerja = pekerjas.First(x =>
-                        string.Equals(x.NoPekerja?.Trim(), row.NoPekerja.Trim(), StringComparison.OrdinalIgnoreCase));
+                    // No.Pekerja opsional - boleh kosong (kartu belum di-assign)
+                    var pekerja = string.IsNullOrWhiteSpace(row.NoPekerja)
+                        ? null
+                        : pekerjas.FirstOrDefault(x =>
+                            string.Equals(x.NoPekerja?.Trim(), row.NoPekerja.Trim(), StringComparison.OrdinalIgnoreCase));
 
                     var kendaraan = kendaraans.First(x =>
                         string.Equals(x.NomorPolisi?.Trim(), row.Nopol.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -406,7 +446,7 @@ namespace ApiService.Application.Services
                     var rfid = new RfId
                     {
                         RfIdCode = row.RfIdCode.Trim(),
-                        PekerjaId = pekerja.Id,
+                        PekerjaId = pekerja?.Id,
                         KendaraanId = kendaraan.Id,
                         IsActive = true,
                         CreatedBy = userId,
@@ -415,16 +455,17 @@ namespace ApiService.Application.Services
 
                     newRfIds.Add(rfid);
 
-                    // Setiap RF.ID baru dari bulk upload otomatis nempel ke Pekerja.RfIds
-                    AddCodeToPekerja(pekerja, rfid.RfIdCode);
+                    // Setiap RF.ID baru dari bulk upload otomatis nempel ke Pekerja.RfIds (kalau ada pekerja)
+                    if (pekerja != null)
+                        AddCodeToPekerja(pekerja, rfid.RfIdCode);
 
                     if (response.Preview.Count < 10)
                     {
                         response.Preview.Add(new RfIdImportPreviewDto
                         {
                             RfIdCode = rfid.RfIdCode,
-                            NoPekerja = pekerja.NoPekerja,
-                            NamaPekerja = pekerja.NamaPekerja,
+                            NoPekerja = pekerja?.NoPekerja ?? string.Empty,
+                            NamaPekerja = pekerja?.NamaPekerja ?? string.Empty,
                             Nopol = kendaraan.NomorPolisi
                         });
                     }
