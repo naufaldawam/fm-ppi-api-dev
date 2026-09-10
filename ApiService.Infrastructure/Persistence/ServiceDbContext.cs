@@ -29,6 +29,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<Kendaraan> Kendaraans { get; set; }
         public DbSet<RfId> RfIds { get; set; }
         public DbSet<Driver> Drivers { get; set; }
+        public DbSet<Periode> Periodes { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -225,6 +226,18 @@ namespace ApiService.Infrastructure.Persistence
                     .HasForeignKey(e => e.AtasanId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .IsRequired(false);
+            });
+
+            // ------------------------------------------------------------
+            // PERIODE (Data Master > Periode) - master independen
+            // ------------------------------------------------------------
+            modelBuilder.Entity<Periode>(entity =>
+            {
+                entity.ToTable("Periodes");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.NamaPeriode).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(false);
             });
         }
     }

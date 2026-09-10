@@ -229,4 +229,33 @@ namespace ApiService.Application.Validators
             // RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
         }
     }
+
+    // ===================================
+    // PERIODE VALIDATORS
+    // ===================================
+    public class CreatePeriodeRequestValidator : AbstractValidator<CreatePeriodeRequest>
+    {
+        public CreatePeriodeRequestValidator()
+        {
+            RuleFor(x => x.NamaPeriode).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.TanggalAwal).NotEmpty().WithMessage("Tanggal awal wajib diisi");
+            RuleFor(x => x.TanggalAkhir)
+                .NotEmpty().WithMessage("Tanggal akhir wajib diisi")
+                .GreaterThanOrEqualTo(x => x.TanggalAwal)
+                .WithMessage("Tanggal akhir tidak boleh sebelum tanggal awal");
+        }
+    }
+
+    public class UpdatePeriodeRequestValidator : AbstractValidator<UpdatePeriodeRequest>
+    {
+        public UpdatePeriodeRequestValidator()
+        {
+            RuleFor(x => x.NamaPeriode).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.TanggalAwal).NotEmpty().WithMessage("Tanggal awal wajib diisi");
+            RuleFor(x => x.TanggalAkhir)
+                .NotEmpty().WithMessage("Tanggal akhir wajib diisi")
+                .GreaterThanOrEqualTo(x => x.TanggalAwal)
+                .WithMessage("Tanggal akhir tidak boleh sebelum tanggal awal");
+        }
+    }
 }

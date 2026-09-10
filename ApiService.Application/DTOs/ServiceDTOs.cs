@@ -799,6 +799,44 @@ namespace ApiService.Application.DTOs
         public List<DriverImportPreviewDto> Preview { get; set; } = new();
     }
 
+        // ===================================
+    // PERIODE (Data Master > Periode)
+    // ===================================
+    public class CreatePeriodeRequest
+    {
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalAwal { get; set; }
+        public DateTime TanggalAkhir { get; set; }
+        public bool IsActive { get; set; } = false;
+    }
+
+    public class UpdatePeriodeRequest
+    {
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalAwal { get; set; }
+        public DateTime TanggalAkhir { get; set; }
+        public bool IsActive { get; set; } = false;
+    }
+
+    public class PeriodeDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalAwal { get; set; }
+        public DateTime TanggalAkhir { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class PeriodeFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
     /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).
     /// Dipakai bareng oleh Jabatan, Vendor, Tipe, BahanBakar, Kepemilikan.</summary>
     public class MasterLookupDto
