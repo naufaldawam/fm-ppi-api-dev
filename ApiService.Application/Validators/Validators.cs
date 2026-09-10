@@ -213,7 +213,7 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.NoHp).NotEmpty().MaximumLength(20);
             RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(150);
             RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
-            RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
+            // RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
         }
     }
 
@@ -226,7 +226,7 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.NoHp).NotEmpty().MaximumLength(20);
             RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(150);
             RuleFor(x => x.VendorId).NotEmpty().WithMessage("Vendor harus dipilih");
-            RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
+            // RuleFor(x => x.AtasanId).NotEmpty().WithMessage("Atasan harus dipilih");
         }
     }
 }
