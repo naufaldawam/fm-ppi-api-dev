@@ -9,7 +9,7 @@ namespace ApiService.API.Controllers
 {
     /// <summary>Data Master > Periode</summary>
     [ApiController]
-    [Route("api/periode")]
+    [Route("periode")]
     [Authorize]
     [Produces("application/json")]
     public class PeriodeController : ControllerBase
