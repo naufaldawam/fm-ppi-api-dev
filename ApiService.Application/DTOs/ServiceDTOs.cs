@@ -825,6 +825,11 @@ namespace ApiService.Application.DTOs
         public DateTime TanggalAwal { get; set; }
         public DateTime TanggalAkhir { get; set; }
         public bool IsActive { get; set; }
+        /// <summary>
+        /// True hanya jika IsActive == true DAN tanggal sekarang berada di antara
+        /// TanggalAwal - TanggalAkhir (inklusif). Salah satu saja tidak terpenuhi -> false.
+        /// </summary>
+        public bool IsCurrentlyActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ModifiedAt { get; set; }
     }
@@ -835,6 +840,27 @@ namespace ApiService.Application.DTOs
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
+    }
+
+    public class PeriodeLookupDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalAwal { get; set; }
+        public DateTime TanggalAkhir { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsCurrentlyActive { get; set; }
+    }
+
+    public class PeriodeStatusDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalAwal { get; set; }
+        public DateTime TanggalAkhir { get; set; }
+        public bool IsActive { get; set; }
+        public bool IsCurrentlyActive { get; set; }
+        public string Reason { get; set; } = string.Empty;
     }
 
     /// <summary>DTO ringan untuk dropdown/lookup master data sederhana (Id + Name).

@@ -47,6 +47,39 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>Lookup ringan untuk dropdown Periode (Id, Nama, rentang tanggal, status aktif).</summary>
+        [HttpGet("lookup")]
+        [RequirePermission("periode.read")]
+        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] bool activeOnly = false)
+        {
+            var result = await _periodeService.GetLookupAsync(search, activeOnly);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Cek status aktif satu periode. Aktif hanya jika IsActive == true DAN tanggal
+        /// sekarang berada di antara TanggalAwal - TanggalAkhir; salah satu saja tidak
+        /// terpenuhi maka dianggap tidak aktif.
+        /// </summary>
+        [HttpGet("{id}/status")]
+        [RequirePermission("periode.read")]
+        public async Task<IActionResult> GetStatus(string id)
+        {
+            var result = await _periodeService.GetStatusAsync(id);
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
+        }
+
+        /// <summary>Ambil periode yang sedang aktif saat ini (kalau ada).</summary>
+        [HttpGet("current")]
+        [RequirePermission("periode.read")]
+        public async Task<IActionResult> GetCurrent()
+        {
+            var result = await _periodeService.GetCurrentActiveAsync();
+            if (!result.Success) return NotFound(result);
+            return Ok(result);
+        }
+
         /// <summary>Tambah periode baru (Tambah Periode)</summary>
         [HttpPost]
         [RequirePermission("periode.create")]
