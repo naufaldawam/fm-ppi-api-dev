@@ -32,6 +32,7 @@ namespace ApiService.Application.Interfaces
         DbSet<Kendaraan> Kendaraans { get; set; }
         DbSet<Driver> Drivers { get; set; }
         DbSet<Periode> Periodes { get; set; }
+        DbSet<MemberParkir> MemberParkirs { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

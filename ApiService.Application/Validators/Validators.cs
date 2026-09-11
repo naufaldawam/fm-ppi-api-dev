@@ -258,4 +258,29 @@ namespace ApiService.Application.Validators
                 .WithMessage("Tanggal akhir tidak boleh sebelum tanggal awal");
         }
     }
+
+    // ===================================
+    // MEMBER PARKIR VALIDATORS
+    // ===================================
+    public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMemberParkirRequest>
+    {
+        public CreateMemberParkirRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+        }
+    }
+
+    public class UpdateMemberParkirRequestValidator : AbstractValidator<UpdateMemberParkirRequest>
+    {
+        public UpdateMemberParkirRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+        }
+    }
 }

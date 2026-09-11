@@ -30,6 +30,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<RfId> RfIds { get; set; }
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<Periode> Periodes { get; set; }
+        public DbSet<MemberParkir> MemberParkirs { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -238,6 +239,33 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasIndex(e => e.NamaPeriode).IsUnique();
                 entity.HasIndex(e => e.IsDeleted);
                 entity.Property(e => e.IsActive).HasDefaultValue(false);
+            });
+
+            // ------------------------------------------------------------
+            // MEMBER PARKIR (Data Master > Member Parkir)
+            // Pekerja + Jabatan (snapshot otomatis dari Pekerja) + RfIdCode
+            // ------------------------------------------------------------
+            modelBuilder.Entity<MemberParkir>(entity =>
+            {
+                entity.ToTable("MemberParkir");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.RfIdCode).IsUnique();
+                entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.JabatanId);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.RfIdCode).HasMaxLength(50);
+                entity.Property(e => e.JumlahBiaya).HasMaxLength(50);
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Jabatan)
+                    .WithMany()
+                    .HasForeignKey(e => e.JabatanId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }
