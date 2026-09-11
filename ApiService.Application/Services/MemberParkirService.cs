@@ -85,22 +85,23 @@ namespace ApiService.Application.Services
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
 
+            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
+            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
+            if (resolution.ErrorMessage != null)
+                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
+
             var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == request.RfIdCode && !m.IsDeleted);
+                .AnyAsync(m => m.RfIdCode == resolution.Code && !m.IsDeleted);
 
             if (rfidCodeExists)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
 
-            var rfidConflict = await ValidateRfIdBelongsToPekerjaAsync(request.RfIdCode, request.PekerjaId);
-            if (rfidConflict != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-005", rfidConflict);
-
             var member = new MemberParkir
             {
                 PekerjaId = request.PekerjaId,
-                // Jabatan otomatis diisi dari Pekerja (client tidak bisa diset)
+                // Jabatan + RF.ID otomatis dihandle server-side (client tidak bisa diset)
                 JabatanId = pekerja.JabatanId,
-                RfIdCode = request.RfIdCode,
+                RfIdCode = resolution.Code,
                 TanggalPenagihan = request.TanggalPenagihan,
                 JumlahBiaya = request.JumlahBiaya,
                 IsActive = true,
@@ -129,20 +130,21 @@ namespace ApiService.Application.Services
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
 
+            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
+            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
+            if (resolution.ErrorMessage != null)
+                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
+
             var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == request.RfIdCode && m.Id != id && !m.IsDeleted);
+                .AnyAsync(m => m.RfIdCode == resolution.Code && m.Id != id && !m.IsDeleted);
 
             if (rfidCodeExists)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
 
-            var rfidConflict = await ValidateRfIdBelongsToPekerjaAsync(request.RfIdCode, request.PekerjaId);
-            if (rfidConflict != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-005", rfidConflict);
-
             member.PekerjaId = request.PekerjaId;
-            // Jabatan otomatis mengikuti Pekerja (perubahan jahitan tidak dari client)
+            // Jabatan + RF.ID otomatis mengikuti Pekerja (perubahan tidak dari client)
             member.JabatanId = pekerja.JabatanId;
-            member.RfIdCode = request.RfIdCode;
+            member.RfIdCode = resolution.Code;
             member.TanggalPenagihan = request.TanggalPenagihan;
             member.JumlahBiaya = request.JumlahBiaya;
             member.IsActive = request.IsActive;
@@ -172,22 +174,49 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "Member parkir deleted");
         }
 
-        /// <summary>
-        /// Cek: kalau kode RF.ID ada di master RfIds DAN sudah di-assign ke Pekerja lain -> error.
-        /// Kalau kartu belum ada / belum di-assign -> OK (FE boleh tipa manual).
-        /// </summary>
-        private async Task<string?> ValidateRfIdBelongsToPekerjaAsync(string rfidCode, string pekerjaId)
+        private sealed class RfIdResolution
         {
-            var rfid = await _context.RfIds
-                .FirstOrDefaultAsync(r => r.RfIdCode == rfidCode && !r.IsDeleted);
+            public string Code { get; set; } = string.Empty;
+            public string? ErrorCode { get; set; }
+            public string? ErrorMessage { get; set; }
+        }
 
-            if (rfid == null)
-                return null;
+        /// <summary>
+        /// RF.ID dihandle server-side:
+        /// - Client diisi kode -> server validasi kode ter-assign ke pekerja ini (via master RfIds).
+        /// - Client kosong      -> server ambil kode pertama dari Pekerja.RfIds.
+        /// </summary>
+        private async Task<RfIdResolution> ResolveRfIdCodeAsync(Pekerja pekerja, string? requestCode)
+        {
+            var trimmed = string.IsNullOrWhiteSpace(requestCode) ? string.Empty : requestCode.Trim();
 
-            if (!string.IsNullOrEmpty(rfid.PekerjaId) && rfid.PekerjaId != pekerjaId)
-                return $"RF.ID '{rfidCode}' sudah di-assign ke Pekerja lain, tidak bisa dipakai.";
+            if (!string.IsNullOrEmpty(trimmed))
+            {
+                var master = await _context.RfIds
+                    .FirstOrDefaultAsync(r => r.RfIdCode == trimmed && !r.IsDeleted);
 
-            return null;
+                if (master != null && master.PekerjaId != pekerja.Id)
+                {
+                    return new RfIdResolution
+                    {
+                        ErrorCode = "ERR-MEMBERPARKIR-005",
+                        ErrorMessage = master.PekerjaId == null
+                            ? $"RF.ID '{trimmed}' belum di-assign ke Pekerja '{pekerja.NoPekerja}'."
+                            : $"RF.ID '{trimmed}' sudah di-assign ke Pekerja lain, tidak bisa dipakai."
+                    };
+                }
+
+                return new RfIdResolution { Code = trimmed };
+            }
+
+            if (pekerja.RfIds.Count > 0)
+                return new RfIdResolution { Code = pekerja.RfIds[0].Trim() };
+
+            return new RfIdResolution
+            {
+                ErrorCode = "ERR-MEMBERPARKIR-006",
+                ErrorMessage = $"Pekerja '{pekerja.NoPekerja}' belum memiliki RF.ID di-assign. Kode RF.ID wajib diisi."
+            };
         }
 
         private static MemberParkirDto MapToDto(MemberParkir m) => new()
