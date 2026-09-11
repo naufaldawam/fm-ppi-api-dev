@@ -463,6 +463,11 @@ namespace ApiService.Application.DTOs
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
+        /// <summary>
+        /// Kode RF.ID yang di-assign ke pekerja ini - supaya form Member Parkir
+        /// langsung terisi field Rfid saat user pilih Pekerja.
+        /// </summary>
+        public List<string> RfIds { get; set; } = new();
     }
 
     // ===================================
@@ -869,5 +874,53 @@ namespace ApiService.Application.DTOs
     {
         public string Id { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+    }
+
+    // ===================================
+    // MEMBER PARKIR (Data Master > Member Parkir)
+    // Field: NamaPekerja, Rfid, No.Pekerja, Jabatan, Tanggal Penagihan, Jumlah Biaya
+    // NamaPekerja / No.Pekerja / Jabatan otomatis diisi dari Pekerja (server-side)
+    // ===================================
+    public class CreateMemberParkirRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public string JumlahBiaya { get; set; } = string.Empty;
+    }
+
+    public class UpdateMemberParkirRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public string JumlahBiaya { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class MemberParkirDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public string JumlahBiaya { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class MemberParkirFilterRequest
+    {
+        /// <summary>Cari berdasarkan No.Pekerja, NamaPekerja, Rfid.</summary>
+        public string? Search { get; set; }
+        public string? JabatanId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
     }
 }

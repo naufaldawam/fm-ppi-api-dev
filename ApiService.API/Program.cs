@@ -130,6 +130,7 @@ builder.Services.AddScoped<IKendaraanService, KendaraanService>();
 builder.Services.AddScoped<IRfIdService, RfIdService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
 builder.Services.AddScoped<IPeriodeService, PeriodeService>();
+builder.Services.AddScoped<IMemberParkirService, MemberParkirService>();
 
 // ===================================
 // VALIDATION

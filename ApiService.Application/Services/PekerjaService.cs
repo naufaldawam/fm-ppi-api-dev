@@ -71,7 +71,9 @@ namespace ApiService.Application.Services
 
         public async Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
         {
-            var query = _context.Pekerjas.Where(p => !p.IsDeleted);
+            var query = _context.Pekerjas
+                .Include(p => p.Jabatan)
+                .Where(p => !p.IsDeleted);
 
             if (activeOnly)
                 query = query.Where(p => p.IsActive);
@@ -81,7 +83,7 @@ namespace ApiService.Application.Services
                     p.NamaPekerja.Contains(search) ||
                     p.NoPekerja.Contains(search));
 
-                        var items = await query
+            var items = await query
                 .OrderBy(p => p.NamaPekerja)
                 .Select(p => new PekerjaLookupDto
                 {
@@ -89,7 +91,8 @@ namespace ApiService.Application.Services
                     NoPekerja = p.NoPekerja,
                     NamaPekerja = p.NamaPekerja,
                     JabatanId = p.JabatanId,
-                    JabatanName = p.Jabatan != null ? p.Jabatan.Name : string.Empty
+                    JabatanName = p.Jabatan != null ? p.Jabatan.Name : string.Empty,
+                    RfIds = p.RfIds
                 })
                 .ToListAsync();
 
