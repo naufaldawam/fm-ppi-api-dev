@@ -252,6 +252,7 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasIndex(e => e.RfIdCode).IsUnique();
                 entity.HasIndex(e => e.PekerjaId);
                 entity.HasIndex(e => e.JabatanId);
+                entity.HasIndex(e => e.PeriodeId);
                 entity.HasIndex(e => e.IsDeleted);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.RfIdCode).HasMaxLength(50);
@@ -265,6 +266,11 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Jabatan)
                     .WithMany()
                     .HasForeignKey(e => e.JabatanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

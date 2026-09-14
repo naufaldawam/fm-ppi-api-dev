@@ -12,6 +12,8 @@ namespace ApiService.Application.Services
     {
         Task<ApiResponse<PagedResponse<MemberParkirDto>>> GetAllAsync(MemberParkirFilterRequest filter);
         Task<ApiResponse<MemberParkirDto>> GetByIdAsync(string id);
+        /// <summary>Ambil satu pekerja by id - untuk prefill form Member Parkir (Jabatan + RfIds).</summary>
+        Task<ApiResponse<PekerjaLookupDto>> GetPekerjaByPekerjaIdAsync(string pekerjaId);
         Task<ApiResponse<MemberParkirDto>> CreateAsync(CreateMemberParkirRequest request, string userId);
         Task<ApiResponse<MemberParkirDto>> UpdateAsync(string id, UpdateMemberParkirRequest request, string userId);
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
@@ -31,6 +33,7 @@ namespace ApiService.Application.Services
                 .Include(m => m.Pekerja)
                     .ThenInclude(p => p!.Jabatan)
                 .Include(m => m.Jabatan)
+                .Include(m => m.Periode)
                 .Where(m => !m.IsDeleted);
 
         public async Task<ApiResponse<PagedResponse<MemberParkirDto>>> GetAllAsync(MemberParkirFilterRequest filter)
@@ -45,6 +48,9 @@ namespace ApiService.Application.Services
 
             if (!string.IsNullOrEmpty(filter.JabatanId))
                 query = query.Where(m => m.JabatanId == filter.JabatanId);
+
+            if (!string.IsNullOrEmpty(filter.PeriodeId))
+                query = query.Where(m => m.PeriodeId == filter.PeriodeId);
 
             if (filter.IsActive.HasValue)
                 query = query.Where(m => m.IsActive == filter.IsActive.Value);
@@ -76,6 +82,29 @@ namespace ApiService.Application.Services
             return ApiResponse<MemberParkirDto>.SuccessResponse(MapToDto(member));
         }
 
+        public async Task<ApiResponse<PekerjaLookupDto>> GetPekerjaByPekerjaIdAsync(string pekerjaId)
+        {
+            if (string.IsNullOrWhiteSpace(pekerjaId))
+                return ApiResponse<PekerjaLookupDto>.BadRequest("PekerjaId wajib diisi.");
+
+            var pekerja = await _context.Pekerjas
+                .Include(p => p.Jabatan)
+                .FirstOrDefaultAsync(p => p.Id == pekerjaId && !p.IsDeleted);
+
+            if (pekerja == null)
+                return ApiResponse<PekerjaLookupDto>.NotFound("Pekerja tidak ditemukan");
+
+            return ApiResponse<PekerjaLookupDto>.SuccessResponse(new PekerjaLookupDto
+            {
+                Id = pekerja.Id,
+                NoPekerja = pekerja.NoPekerja,
+                NamaPekerja = pekerja.NamaPekerja,
+                JabatanId = pekerja.JabatanId,
+                JabatanName = pekerja.Jabatan?.Name ?? string.Empty,
+                RfIds = pekerja.RfIds
+            });
+        }
+
         public async Task<ApiResponse<MemberParkirDto>> CreateAsync(CreateMemberParkirRequest request, string userId)
         {
             var pekerja = await _context.Pekerjas
@@ -84,6 +113,12 @@ namespace ApiService.Application.Services
 
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
+
+            var periodeOk = await _context.Periodes
+                .AnyAsync(p => p.Id == request.PeriodeId && !p.IsDeleted);
+
+            if (!periodeOk)
+                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
 
             // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
             var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
@@ -101,6 +136,7 @@ namespace ApiService.Application.Services
                 PekerjaId = request.PekerjaId,
                 // Jabatan + RF.ID otomatis dihandle server-side (client tidak bisa diset)
                 JabatanId = pekerja.JabatanId,
+                PeriodeId = request.PeriodeId,
                 RfIdCode = resolution.Code,
                 TanggalPenagihan = request.TanggalPenagihan,
                 JumlahBiaya = request.JumlahBiaya,
@@ -130,6 +166,12 @@ namespace ApiService.Application.Services
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
 
+            var periodeOk = await _context.Periodes
+                .AnyAsync(p => p.Id == request.PeriodeId && !p.IsDeleted);
+
+            if (!periodeOk)
+                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
+
             // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
             var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
             if (resolution.ErrorMessage != null)
@@ -144,6 +186,7 @@ namespace ApiService.Application.Services
             member.PekerjaId = request.PekerjaId;
             // Jabatan + RF.ID otomatis mengikuti Pekerja (perubahan tidak dari client)
             member.JabatanId = pekerja.JabatanId;
+            member.PeriodeId = request.PeriodeId;
             member.RfIdCode = resolution.Code;
             member.TanggalPenagihan = request.TanggalPenagihan;
             member.JumlahBiaya = request.JumlahBiaya;
@@ -228,6 +271,8 @@ namespace ApiService.Application.Services
             JabatanId = m.JabatanId,
             JabatanName = m.Jabatan?.Name ?? m.Pekerja?.Jabatan?.Name ?? string.Empty,
             RfIdCode = m.RfIdCode,
+            PeriodeId = m.PeriodeId,
+            NamaPeriode = m.Periode?.NamaPeriode ?? string.Empty,
             TanggalPenagihan = m.TanggalPenagihan,
             JumlahBiaya = m.JumlahBiaya,
             IsActive = m.IsActive,

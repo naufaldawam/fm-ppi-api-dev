@@ -878,7 +878,7 @@ namespace ApiService.Application.DTOs
 
     // ===================================
     // MEMBER PARKIR (Data Master > Member Parkir)
-    // Field: NamaPekerja, Rfid, No.Pekerja, Jabatan, Tanggal Penagihan, Jumlah Biaya
+    // Field: NamaPekerja, Rfid, No.Pekerja, Jabatan, Periode, Tanggal Penagihan, Jumlah Biaya
     // NamaPekerja / No.Pekerja / Jabatan / RF.ID otomatis diisi dari Pekerja (server-side)
     // ===================================
     public class CreateMemberParkirRequest
@@ -889,6 +889,8 @@ namespace ApiService.Application.DTOs
         /// kode RF.ID pertama dari Pekerja.RfIds yang dipakai.
         /// </summary>
         public string? RfIdCode { get; set; }
+        /// <summary>Periode di mana record ini dibuat (dropdown dari master Periode).</summary>
+        public string PeriodeId { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
         public string JumlahBiaya { get; set; } = string.Empty;
     }
@@ -901,6 +903,8 @@ namespace ApiService.Application.DTOs
         /// kode RF.ID pertama dari Pekerja.RfIds yang dipakai.
         /// </summary>
         public string? RfIdCode { get; set; }
+        /// <summary>Periode di mana record ini dibuat (dropdown dari master Periode).</summary>
+        public string PeriodeId { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
         public string JumlahBiaya { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
@@ -915,6 +919,8 @@ namespace ApiService.Application.DTOs
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
         public string RfIdCode { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
         public string JumlahBiaya { get; set; } = string.Empty;
         public bool IsActive { get; set; }
@@ -927,6 +933,7 @@ namespace ApiService.Application.DTOs
         /// <summary>Cari berdasarkan No.Pekerja, NamaPekerja, Rfid.</summary>
         public string? Search { get; set; }
         public string? JabatanId { get; set; }
+        public string? PeriodeId { get; set; }
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;

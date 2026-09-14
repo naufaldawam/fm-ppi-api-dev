@@ -10,7 +10,7 @@ namespace ApiService.API.Controllers
     /// <summary>
     /// Data Master > Member Parkir.
     /// Field: NamaPekerja, Rfid, No.Pekerja, Jabatan (auto-fill dari Pekerja),
-    /// Tanggal Penagihan, Jumlah Biaya.
+    /// Periode, Tanggal Penagihan, Jumlah Biaya.
     /// </summary>
     [ApiController]
     [Route("member-parkir")]
@@ -20,17 +20,20 @@ namespace ApiService.API.Controllers
     {
         private readonly IMemberParkirService _memberParkirService;
         private readonly IPekerjaService _pekerjaService;
+        private readonly IPeriodeService _periodeService;
         private readonly ICurrentUser _currentUser;
         private readonly ILogger<MemberParkirController> _logger;
 
         public MemberParkirController(
             IMemberParkirService memberParkirService,
             IPekerjaService pekerjaService,
+            IPeriodeService periodeService,
             ICurrentUser currentUser,
             ILogger<MemberParkirController> logger)
         {
             _memberParkirService = memberParkirService;
             _pekerjaService = pekerjaService;
+            _periodeService = periodeService;
             _currentUser = currentUser;
             _logger = logger;
         }
@@ -48,12 +51,34 @@ namespace ApiService.API.Controllers
         /// FE terisi NamaPekerja, No.Pekerja, Jabatan, dan Rfid
         /// dari response (rfIds[]).
         /// GET /member-parkir/pekerja-lookup?search=xxx&activeOnly=true
+        /// GET /member-parkir/pekerja-lookup?pekerjaId=xxx   (prefill satu pekerja)
         /// </summary>
         [HttpGet("pekerja-lookup")]
         [RequirePermission("member-parkir.read")]
-        public async Task<IActionResult> GetPekerjaLookup([FromQuery] string? search, [FromQuery] bool activeOnly = true)
+        public async Task<IActionResult> GetPekerjaLookup(
+            [FromQuery] string? pekerjaId,
+            [FromQuery] string? search,
+            [FromQuery] bool activeOnly = true)
         {
+            if (!string.IsNullOrWhiteSpace(pekerjaId))
+            {
+                var byIdResult = await _memberParkirService.GetPekerjaByPekerjaIdAsync(pekerjaId);
+                return StatusCode(byIdResult.StatusCode, byIdResult);
+            }
+
             var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        /// <summary>
+        /// Dropdown Periode: pilih periode di mana record Member Parkir ini dibuat.
+        /// GET /member-parkir/periode-lookup?search=xxx&activeOnly=false
+        /// </summary>
+        [HttpGet("periode-lookup")]
+        [RequirePermission("member-parkir.read")]
+        public async Task<IActionResult> GetPeriodeLookup([FromQuery] string? search, [FromQuery] bool activeOnly = false)
+        {
+            var result = await _periodeService.GetLookupAsync(search, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
