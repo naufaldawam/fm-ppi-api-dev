@@ -8,6 +8,7 @@ namespace ApiService.Domain.Entities
     /// NamaPekerja / No.Pekerja / Jabatan otomatis diisi dari Pekerja yang dipilih.
     /// RfId = kode kartu. TanggalPenagihan = tanggal penagihan biaya parkir.
     /// JumlahBiaya = string (format dari UX: "Rp.999.000.000").
+    /// PeriodeId = periode di mana record member parkir ini dibuat/dilaporkan.
     /// </summary>
     public class MemberParkir : BaseEntity
     {
@@ -19,6 +20,11 @@ namespace ApiService.Domain.Entities
         [Required]
         public string JabatanId { get; set; } = string.Empty;
         public MasterJabatan? Jabatan { get; set; }
+
+        /// <summary>Periode di mana record ini dibuat (dropdown dari master Periode).</summary>
+        [Required]
+        public string PeriodeId { get; set; } = string.Empty;
+        public Periode? Periode { get; set; }
 
         [Required]
         [MaxLength(50)]

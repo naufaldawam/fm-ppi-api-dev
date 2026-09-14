@@ -12,6 +12,8 @@ namespace ApiService.Application.Services
     {
         Task<ApiResponse<PagedResponse<MemberParkirDto>>> GetAllAsync(MemberParkirFilterRequest filter);
         Task<ApiResponse<MemberParkirDto>> GetByIdAsync(string id);
+        /// <summary>Ambil satu pekerja by id - untuk prefill form Member Parkir (Jabatan + RfIds).</summary>
+        Task<ApiResponse<PekerjaLookupDto>> GetPekerjaByPekerjaIdAsync(string pekerjaId);
         Task<ApiResponse<MemberParkirDto>> CreateAsync(CreateMemberParkirRequest request, string userId);
         Task<ApiResponse<MemberParkirDto>> UpdateAsync(string id, UpdateMemberParkirRequest request, string userId);
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
@@ -31,6 +33,7 @@ namespace ApiService.Application.Services
                 .Include(m => m.Pekerja)
                     .ThenInclude(p => p!.Jabatan)
                 .Include(m => m.Jabatan)
+                .Include(m => m.Periode)
                 .Where(m => !m.IsDeleted);
 
         public async Task<ApiResponse<PagedResponse<MemberParkirDto>>> GetAllAsync(MemberParkirFilterRequest filter)
@@ -45,6 +48,9 @@ namespace ApiService.Application.Services
 
             if (!string.IsNullOrEmpty(filter.JabatanId))
                 query = query.Where(m => m.JabatanId == filter.JabatanId);
+
+            if (!string.IsNullOrEmpty(filter.PeriodeId))
+                query = query.Where(m => m.PeriodeId == filter.PeriodeId);
 
             if (filter.IsActive.HasValue)
                 query = query.Where(m => m.IsActive == filter.IsActive.Value);
@@ -76,6 +82,29 @@ namespace ApiService.Application.Services
             return ApiResponse<MemberParkirDto>.SuccessResponse(MapToDto(member));
         }
 
+        public async Task<ApiResponse<PekerjaLookupDto>> GetPekerjaByPekerjaIdAsync(string pekerjaId)
+        {
+            if (string.IsNullOrWhiteSpace(pekerjaId))
+                return ApiResponse<PekerjaLookupDto>.BadRequest("PekerjaId wajib diisi.");
+
+            var pekerja = await _context.Pekerjas
+                .Include(p => p.Jabatan)
+                .FirstOrDefaultAsync(p => p.Id == pekerjaId && !p.IsDeleted);
+
+            if (pekerja == null)
+                return ApiResponse<PekerjaLookupDto>.NotFound("Pekerja tidak ditemukan");
+
+            return ApiResponse<PekerjaLookupDto>.SuccessResponse(new PekerjaLookupDto
+            {
+                Id = pekerja.Id,
+                NoPekerja = pekerja.NoPekerja,
+                NamaPekerja = pekerja.NamaPekerja,
+                JabatanId = pekerja.JabatanId,
+                JabatanName = pekerja.Jabatan?.Name ?? string.Empty,
+                RfIds = pekerja.RfIds
+            });
+        }
+
         public async Task<ApiResponse<MemberParkirDto>> CreateAsync(CreateMemberParkirRequest request, string userId)
         {
             var pekerja = await _context.Pekerjas
@@ -85,22 +114,30 @@ namespace ApiService.Application.Services
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
 
+            var periodeOk = await _context.Periodes
+                .AnyAsync(p => p.Id == request.PeriodeId && !p.IsDeleted);
+
+            if (!periodeOk)
+                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
+
+            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
+            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
+            if (resolution.ErrorMessage != null)
+                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
+
             var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == request.RfIdCode && !m.IsDeleted);
+                .AnyAsync(m => m.RfIdCode == resolution.Code && !m.IsDeleted);
 
             if (rfidCodeExists)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
 
-            var rfidConflict = await ValidateRfIdBelongsToPekerjaAsync(request.RfIdCode, request.PekerjaId);
-            if (rfidConflict != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-005", rfidConflict);
-
             var member = new MemberParkir
             {
                 PekerjaId = request.PekerjaId,
-                // Jabatan otomatis diisi dari Pekerja (client tidak bisa diset)
+                // Jabatan + RF.ID otomatis dihandle server-side (client tidak bisa diset)
                 JabatanId = pekerja.JabatanId,
-                RfIdCode = request.RfIdCode,
+                PeriodeId = request.PeriodeId,
+                RfIdCode = resolution.Code,
                 TanggalPenagihan = request.TanggalPenagihan,
                 JumlahBiaya = request.JumlahBiaya,
                 IsActive = true,
@@ -129,20 +166,28 @@ namespace ApiService.Application.Services
             if (pekerja == null)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-003", "Pekerja tidak ditemukan");
 
+            var periodeOk = await _context.Periodes
+                .AnyAsync(p => p.Id == request.PeriodeId && !p.IsDeleted);
+
+            if (!periodeOk)
+                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
+
+            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
+            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
+            if (resolution.ErrorMessage != null)
+                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
+
             var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == request.RfIdCode && m.Id != id && !m.IsDeleted);
+                .AnyAsync(m => m.RfIdCode == resolution.Code && m.Id != id && !m.IsDeleted);
 
             if (rfidCodeExists)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
 
-            var rfidConflict = await ValidateRfIdBelongsToPekerjaAsync(request.RfIdCode, request.PekerjaId);
-            if (rfidConflict != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-005", rfidConflict);
-
             member.PekerjaId = request.PekerjaId;
-            // Jabatan otomatis mengikuti Pekerja (perubahan jahitan tidak dari client)
+            // Jabatan + RF.ID otomatis mengikuti Pekerja (perubahan tidak dari client)
             member.JabatanId = pekerja.JabatanId;
-            member.RfIdCode = request.RfIdCode;
+            member.PeriodeId = request.PeriodeId;
+            member.RfIdCode = resolution.Code;
             member.TanggalPenagihan = request.TanggalPenagihan;
             member.JumlahBiaya = request.JumlahBiaya;
             member.IsActive = request.IsActive;
@@ -172,22 +217,49 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "Member parkir deleted");
         }
 
-        /// <summary>
-        /// Cek: kalau kode RF.ID ada di master RfIds DAN sudah di-assign ke Pekerja lain -> error.
-        /// Kalau kartu belum ada / belum di-assign -> OK (FE boleh tipa manual).
-        /// </summary>
-        private async Task<string?> ValidateRfIdBelongsToPekerjaAsync(string rfidCode, string pekerjaId)
+        private sealed class RfIdResolution
         {
-            var rfid = await _context.RfIds
-                .FirstOrDefaultAsync(r => r.RfIdCode == rfidCode && !r.IsDeleted);
+            public string Code { get; set; } = string.Empty;
+            public string? ErrorCode { get; set; }
+            public string? ErrorMessage { get; set; }
+        }
 
-            if (rfid == null)
-                return null;
+        /// <summary>
+        /// RF.ID dihandle server-side:
+        /// - Client diisi kode -> server validasi kode ter-assign ke pekerja ini (via master RfIds).
+        /// - Client kosong      -> server ambil kode pertama dari Pekerja.RfIds.
+        /// </summary>
+        private async Task<RfIdResolution> ResolveRfIdCodeAsync(Pekerja pekerja, string? requestCode)
+        {
+            var trimmed = string.IsNullOrWhiteSpace(requestCode) ? string.Empty : requestCode.Trim();
 
-            if (!string.IsNullOrEmpty(rfid.PekerjaId) && rfid.PekerjaId != pekerjaId)
-                return $"RF.ID '{rfidCode}' sudah di-assign ke Pekerja lain, tidak bisa dipakai.";
+            if (!string.IsNullOrEmpty(trimmed))
+            {
+                var master = await _context.RfIds
+                    .FirstOrDefaultAsync(r => r.RfIdCode == trimmed && !r.IsDeleted);
 
-            return null;
+                if (master != null && master.PekerjaId != pekerja.Id)
+                {
+                    return new RfIdResolution
+                    {
+                        ErrorCode = "ERR-MEMBERPARKIR-005",
+                        ErrorMessage = master.PekerjaId == null
+                            ? $"RF.ID '{trimmed}' belum di-assign ke Pekerja '{pekerja.NoPekerja}'."
+                            : $"RF.ID '{trimmed}' sudah di-assign ke Pekerja lain, tidak bisa dipakai."
+                    };
+                }
+
+                return new RfIdResolution { Code = trimmed };
+            }
+
+            if (pekerja.RfIds.Count > 0)
+                return new RfIdResolution { Code = pekerja.RfIds[0].Trim() };
+
+            return new RfIdResolution
+            {
+                ErrorCode = "ERR-MEMBERPARKIR-006",
+                ErrorMessage = $"Pekerja '{pekerja.NoPekerja}' belum memiliki RF.ID di-assign. Kode RF.ID wajib diisi."
+            };
         }
 
         private static MemberParkirDto MapToDto(MemberParkir m) => new()
@@ -199,6 +271,8 @@ namespace ApiService.Application.Services
             JabatanId = m.JabatanId,
             JabatanName = m.Jabatan?.Name ?? m.Pekerja?.Jabatan?.Name ?? string.Empty,
             RfIdCode = m.RfIdCode,
+            PeriodeId = m.PeriodeId,
+            NamaPeriode = m.Periode?.NamaPeriode ?? string.Empty,
             TanggalPenagihan = m.TanggalPenagihan,
             JumlahBiaya = m.JumlahBiaya,
             IsActive = m.IsActive,

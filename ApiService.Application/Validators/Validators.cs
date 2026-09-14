@@ -262,25 +262,27 @@ namespace ApiService.Application.Validators
     // ===================================
     // MEMBER PARKIR VALIDATORS
     // ===================================
-    public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMemberParkirRequest>
-    {
-        public CreateMemberParkirRequestValidator()
+public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMemberParkirRequest>
         {
-            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
-            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-            RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+            public CreateMemberParkirRequestValidator()
+            {
+                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+                RuleFor(x => x.RfIdCode).MaximumLength(50).When(x => x.RfIdCode != null);
+                RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+                RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+            }
         }
-    }
 
-    public class UpdateMemberParkirRequestValidator : AbstractValidator<UpdateMemberParkirRequest>
-    {
-        public UpdateMemberParkirRequestValidator()
+        public class UpdateMemberParkirRequestValidator : AbstractValidator<UpdateMemberParkirRequest>
         {
-            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-            RuleFor(x => x.RfIdCode).NotEmpty().MaximumLength(50);
-            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-            RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+            public UpdateMemberParkirRequestValidator()
+            {
+                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+                RuleFor(x => x.RfIdCode).MaximumLength(50).When(x => x.RfIdCode != null);
+                RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+                RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+            }
         }
-    }
 }
