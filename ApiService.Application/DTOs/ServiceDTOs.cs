@@ -938,4 +938,41 @@ namespace ApiService.Application.DTOs
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
+
+        // ===================================
+    // MEMBER PARKIR - BULK UPLOAD
+    // Kolom template: NoPekerja | Rfid | Periode | TanggalPenagihan | JumlahBiaya
+    // Lookup Pekerja via NoPekerja; Periode via NamaPeriode
+    // ===================================
+    public class MemberParkirImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TanggalPenagihanText { get; set; } = string.Empty;
+        public DateTime? TanggalPenagihan { get; set; }
+        public string JumlahBiaya { get; set; } = string.Empty;
+    }
+
+    public class MemberParkirImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public string RfIdCode { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public string JumlahBiaya { get; set; } = string.Empty;
+    }
+
+    public class MemberParkirImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedMemberParkir { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<MemberParkirImportPreviewDto> Preview { get; set; } = new();
+    }
 }

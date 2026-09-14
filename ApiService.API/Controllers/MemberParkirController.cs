@@ -120,5 +120,50 @@ namespace ApiService.API.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+
+        /// <summary>Download template Excel untuk bulk upload Member Parkir.</summary>
+        [HttpGet("download-template")]
+        [RequirePermission("member-parkir.read")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            _logger.LogInformation("User {UserId} download template Member Parkir.", _currentUser.UserId);
+
+            var result = await _memberParkirService.GetImportTemplateAsync();
+            if (!result.Success || result.Data == null)
+                return StatusCode(result.StatusCode, result);
+
+            var file = result.Data;
+            return File(file.FileStream, file.ContentType, file.FileName);
+        }
+
+        /// <summary>
+        /// Bulk upload data Member Parkir dari file Excel (.xlsx).
+        /// Kolom wajib: NoPekerja | Rfid | Periode | TanggalPenagihan | JumlahBiaya
+        /// Gunakan endpoint download-template untuk mendapatkan file template beserta sheet referensi.
+        /// </summary>
+        [HttpPost("import-excel")]
+        [RequirePermission("member-parkir.create")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "File tidak boleh kosong." });
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension != ".xlsx")
+                return BadRequest(new { success = false, message = "Hanya mendukung file dengan format .xlsx." });
+
+            var userId = _currentUser.UserId!;
+
+            await using var stream = file.OpenReadStream();
+            var result = await _memberParkirService.ImportFromExcelAsync(stream, userId);
+
+            _logger.LogInformation(
+                "Import Member Parkir | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
+                file.FileName, file.Length, userId, result.Success);
+
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }
