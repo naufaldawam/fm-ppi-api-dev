@@ -7,6 +7,7 @@ using ApiService.Application.Interfaces;
 using ApiService.Domain.Entities;
 using System.IO;
 using System.Collections.Generic;
+using System.Globalization;
 using ClosedXML.Excel;
 
 namespace ApiService.Application.Services
@@ -47,7 +48,6 @@ namespace ApiService.Application.Services
 
             if (!string.IsNullOrEmpty(filter.Search))
                 query = query.Where(m =>
-                    m.RfIdCode.Contains(filter.Search) ||
                     (m.Pekerja != null && m.Pekerja.NoPekerja.Contains(filter.Search)) ||
                     (m.Pekerja != null && m.Pekerja.NamaPekerja.Contains(filter.Search)));
 
@@ -125,24 +125,12 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
 
-            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
-            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
-            if (resolution.ErrorMessage != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
-
-            var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == resolution.Code && !m.IsDeleted);
-
-            if (rfidCodeExists)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
-
             var member = new MemberParkir
             {
                 PekerjaId = request.PekerjaId,
-                // Jabatan + RF.ID otomatis dihandle server-side (client tidak bisa diset)
+                // Jabatan otomatis dihandle server-side (client tidak bisa diset)
                 JabatanId = pekerja.JabatanId,
                 PeriodeId = request.PeriodeId,
-                RfIdCode = resolution.Code,
                 TanggalPenagihan = request.TanggalPenagihan,
                 JumlahBiaya = request.JumlahBiaya,
                 IsActive = true,
@@ -177,22 +165,10 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-007", "Periode tidak ditemukan");
 
-            // RF.ID dihandle server-side: client boleh kosong, server yang ambil/validasi
-            var resolution = await ResolveRfIdCodeAsync(pekerja, request.RfIdCode);
-            if (resolution.ErrorMessage != null)
-                return ApiResponse<MemberParkirDto>.ErrorResponse(resolution.ErrorCode!, resolution.ErrorMessage);
-
-            var rfidCodeExists = await _context.MemberParkirs
-                .AnyAsync(m => m.RfIdCode == resolution.Code && m.Id != id && !m.IsDeleted);
-
-            if (rfidCodeExists)
-                return ApiResponse<MemberParkirDto>.ErrorResponse("ERR-MEMBERPARKIR-004", "RF.ID sudah terdaftar sebagai member parkir");
-
             member.PekerjaId = request.PekerjaId;
-            // Jabatan + RF.ID otomatis mengikuti Pekerja (perubahan tidak dari client)
+            // Jabatan otomatis mengikuti Pekerja (perubahan tidak dari client)
             member.JabatanId = pekerja.JabatanId;
             member.PeriodeId = request.PeriodeId;
-            member.RfIdCode = resolution.Code;
             member.TanggalPenagihan = request.TanggalPenagihan;
             member.JumlahBiaya = request.JumlahBiaya;
             member.IsActive = request.IsActive;
@@ -222,56 +198,11 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "Member parkir deleted");
         }
 
-        private sealed class RfIdResolution
-        {
-            public string Code { get; set; } = string.Empty;
-            public string? ErrorCode { get; set; }
-            public string? ErrorMessage { get; set; }
-        }
-
-        /// <summary>
-        /// RF.ID dihandle server-side:
-        /// - Client diisi kode -> server validasi kode ter-assign ke pekerja ini (via master RfIds).
-        /// - Client kosong      -> server ambil kode pertama dari Pekerja.RfIds.
-        /// </summary>
-        private async Task<RfIdResolution> ResolveRfIdCodeAsync(Pekerja pekerja, string? requestCode)
-        {
-            var trimmed = string.IsNullOrWhiteSpace(requestCode) ? string.Empty : requestCode.Trim();
-
-            if (!string.IsNullOrEmpty(trimmed))
-            {
-                var master = await _context.RfIds
-                    .FirstOrDefaultAsync(r => r.RfIdCode == trimmed && !r.IsDeleted);
-
-                if (master != null && master.PekerjaId != pekerja.Id)
-                {
-                    return new RfIdResolution
-                    {
-                        ErrorCode = "ERR-MEMBERPARKIR-005",
-                        ErrorMessage = master.PekerjaId == null
-                            ? $"RF.ID '{trimmed}' belum di-assign ke Pekerja '{pekerja.NoPekerja}'."
-                            : $"RF.ID '{trimmed}' sudah di-assign ke Pekerja lain, tidak bisa dipakai."
-                    };
-                }
-
-                return new RfIdResolution { Code = trimmed };
-            }
-
-            if (pekerja.RfIds.Count > 0)
-                return new RfIdResolution { Code = pekerja.RfIds[0].Trim() };
-
-            return new RfIdResolution
-            {
-                ErrorCode = "ERR-MEMBERPARKIR-006",
-                ErrorMessage = $"Pekerja '{pekerja.NoPekerja}' belum memiliki RF.ID di-assign. Kode RF.ID wajib diisi."
-            };
-        }
-
         // =========================================================
         // BULK UPLOAD MEMBER PARKIR
-        // Template kolom: NoPekerja | Rfid | Periode | TanggalPenagihan | JumlahBiaya
-        // Lookup Pekerja via NoPekerja; Periode via NamaPeriode;
-        // RF.ID server-side: diisi -> validasi belong to pekerja, kosong -> Pekerja.RfIds[0]
+        // Template kolom: NoPekerja | Periode | TanggalPenagihan | JumlahBiaya
+        // Lookup Pekerja via NoPekerja; Periode via NamaPeriode.
+        // RF.ID TIDAK ada di template - selalu ditarik dari Pekerja.RfIds saat preview/ditampilkan.
         // =========================================================
 
         private const int MemberParkirImportHeaderRow = 1;
@@ -279,7 +210,7 @@ namespace ApiService.Application.Services
 
         private static readonly string[] MemberParkirRequiredImportHeaders =
         {
-            "nopekerja", "rfid", "periode", "tanggalpenagihan", "jumlahbiaya"
+            "nopekerja", "periode", "tanggalpenagihan", "jumlahbiaya"
         };
 
         public async Task<ApiResponse<MemberParkirImportResponse>> ImportFromExcelAsync(Stream fileStream, string userId)
@@ -328,17 +259,15 @@ namespace ApiService.Application.Services
                     {
                         RowNumber = row,
                         NoPekerja = GetMemberParkirImportCellText(sheet, row, headerMap, "NoPekerja"),
-                        RfIdCode = GetMemberParkirImportCellText(sheet, row, headerMap, "Rfid"),
                         PeriodeName = GetMemberParkirImportCellText(sheet, row, headerMap, "Periode"),
                         TanggalPenagihanText = GetMemberParkirImportCellText(sheet, row, headerMap, "TanggalPenagihan"),
-                        JumlahBiaya = GetMemberParkirImportCellText(sheet, row, headerMap, "JumlahBiaya")
+                        JumlahBiayaText = GetMemberParkirImportCellText(sheet, row, headerMap, "JumlahBiaya")
                     };
 
                     ValidateMemberParkirRequiredField(response.Errors, row, "NoPekerja", parsedRow.NoPekerja);
                     ValidateMemberParkirRequiredField(response.Errors, row, "Periode", parsedRow.PeriodeName);
                     ValidateMemberParkirRequiredField(response.Errors, row, "TanggalPenagihan", parsedRow.TanggalPenagihanText);
-                    ValidateMemberParkirRequiredField(response.Errors, row, "JumlahBiaya", parsedRow.JumlahBiaya);
-                    // Rfid opsional - dihandle server-side (ambil dari Pekerja.RfIds kalau kosong)
+                    ValidateMemberParkirRequiredField(response.Errors, row, "JumlahBiaya", parsedRow.JumlahBiayaText);
 
                     parsedRow.TanggalPenagihan = ReadImportDate(sheet, row, headerMap);
                     if (parsedRow.TanggalPenagihan == null)
@@ -351,14 +280,28 @@ namespace ApiService.Application.Services
                         });
                     }
 
-                    if (parsedRow.JumlahBiaya.Length > 50)
+                    if (!string.IsNullOrWhiteSpace(parsedRow.JumlahBiayaText))
                     {
-                        response.Errors.Add(new ImportRowError
+                        parsedRow.JumlahBiaya = ParseImportDecimal(sheet, row, headerMap, "JumlahBiaya");
+
+                        if (parsedRow.JumlahBiaya == null)
                         {
-                            RowNumber = row,
-                            Column = "JumlahBiaya",
-                            Message = "JumlahBiaya maksimum 50 karakter."
-                        });
+                            response.Errors.Add(new ImportRowError
+                            {
+                                RowNumber = row,
+                                Column = "JumlahBiaya",
+                                Message = "JumlahBiaya tidak valid. Isi angka murni, contoh: 999000000."
+                            });
+                        }
+                        else if (parsedRow.JumlahBiaya <= 0)
+                        {
+                            response.Errors.Add(new ImportRowError
+                            {
+                                RowNumber = row,
+                                Column = "JumlahBiaya",
+                                Message = "JumlahBiaya harus lebih dari 0."
+                            });
+                        }
                     }
 
                     parsedRows.Add(parsedRow);
@@ -391,28 +334,6 @@ namespace ApiService.Application.Services
                 }
 
                 // =========================
-                // DUPLIKAT RF.ID DI DALAM FILE
-                // =========================
-                var rfidInFile = parsedRows
-                    .Where(x => !string.IsNullOrWhiteSpace(x.RfIdCode))
-                    .GroupBy(x => x.RfIdCode.Trim(), StringComparer.OrdinalIgnoreCase)
-                    .Where(g => g.Count() > 1)
-                    .Select(g => g.Key)
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                foreach (var row in parsedRows.Where(x =>
-                             !string.IsNullOrWhiteSpace(x.RfIdCode) &&
-                             rfidInFile.Contains(x.RfIdCode.Trim())))
-                {
-                    response.Errors.Add(new ImportRowError
-                    {
-                        RowNumber = row.RowNumber,
-                        Column = "Rfid",
-                        Message = $"Rfid '{row.RfIdCode}' duplikat di dalam file Excel."
-                    });
-                }
-
-                // =========================
                 // LOAD MASTER DATA SEKALI (include Jabatan untuk preview)
                 // =========================
                 var pekerjas = await _context.Pekerjas
@@ -420,20 +341,14 @@ namespace ApiService.Application.Services
                     .Where(x => !x.IsDeleted)
                     .ToListAsync();
                 var periodes = await _context.Periodes.Where(x => !x.IsDeleted).ToListAsync();
-                var rfIdMaster = await _context.RfIds.Where(x => !x.IsDeleted).ToListAsync();
                 var existingMembers = await _context.MemberParkirs.Where(x => !x.IsDeleted).ToListAsync();
 
                 var existingMemberKeys = existingMembers
                     .Select(m => $"{m.PekerjaId}|{m.PeriodeId}")
                     .ToHashSet();
 
-                var existingRfIdSet = existingMembers
-                    .Select(m => m.RfIdCode.Trim().ToLowerInvariant())
-                    .Where(x => !string.IsNullOrEmpty(x))
-                    .ToHashSet();
-
                 // =========================
-                // VALIDASI PER ROW: Pekerja, Periode, Duplikat DB, RF.ID
+                // VALIDASI PER ROW: Pekerja, Periode, Duplikat DB
                 // =========================
                 var contextRows = new List<MemberParkirImportContext>();
 
@@ -441,6 +356,9 @@ namespace ApiService.Application.Services
                 {
                     if (string.IsNullOrWhiteSpace(row.NoPekerja) || string.IsNullOrWhiteSpace(row.PeriodeName))
                         continue; // sudah ditangani required
+
+                    if (row.JumlahBiaya == null)
+                        continue; // sudah ditangani validasi JumlahBiaya
 
                     var pekerja = pekerjas.FirstOrDefault(p =>
                         string.Equals(p.NoPekerja?.Trim(), row.NoPekerja.Trim(), StringComparison.OrdinalIgnoreCase));
@@ -482,57 +400,11 @@ namespace ApiService.Application.Services
                         continue;
                     }
 
-                    // RF.ID dihandle server-side (sama logika dengan create)
-                    var rfid = row.RfIdCode.Trim();
-                    if (string.IsNullOrEmpty(rfid))
-                    {
-                        if (pekerja.RfIds.Count > 0)
-                            rfid = pekerja.RfIds[0].Trim();
-                        else
-                        {
-                            response.Errors.Add(new ImportRowError
-                            {
-                                RowNumber = row.RowNumber,
-                                Column = "Rfid",
-                                Message = $"Pekerja '{row.NoPekerja}' belum memiliki RF.ID di-assign. Kode RF.ID wajib diisi."
-                            });
-                            continue;
-                        }
-                    }
-
-                    var rfidMasterRow = rfIdMaster.FirstOrDefault(r =>
-                        string.Equals(r.RfIdCode?.Trim(), rfid, StringComparison.OrdinalIgnoreCase));
-
-                    if (rfidMasterRow != null && rfidMasterRow.PekerjaId != pekerja.Id)
-                    {
-                        response.Errors.Add(new ImportRowError
-                        {
-                            RowNumber = row.RowNumber,
-                            Column = "Rfid",
-                            Message = rfidMasterRow.PekerjaId == null
-                                ? $"RF.ID '{rfid}' belum di-assign ke Pekerja '{row.NoPekerja}'."
-                                : $"RF.ID '{rfid}' sudah di-assign ke Pekerja lain, tidak bisa dipakai."
-                        });
-                        continue;
-                    }
-
-                    if (existingRfIdSet.Contains(rfid.ToLowerInvariant()))
-                    {
-                        response.Errors.Add(new ImportRowError
-                        {
-                            RowNumber = row.RowNumber,
-                            Column = "Rfid",
-                            Message = $"RF.ID '{rfid}' sudah terdaftar sebagai member parkir."
-                        });
-                        continue;
-                    }
-
                     contextRows.Add(new MemberParkirImportContext
                     {
                         Row = row,
                         Pekerja = pekerja,
-                        Periode = periode,
-                        RfIdCode = rfid
+                        Periode = periode
                     });
                 }
 
@@ -561,12 +433,11 @@ namespace ApiService.Application.Services
                     var member = new MemberParkir
                     {
                         PekerjaId = ctx.Pekerja.Id,
-                        // Jabatan + RF.ID otomatis dari Pekerja (server-side)
+                        // Jabatan otomatis dari Pekerja (server-side)
                         JabatanId = ctx.Pekerja.JabatanId,
                         PeriodeId = ctx.Periode.Id,
-                        RfIdCode = ctx.RfIdCode,
-                        TanggalPenagihan = (DateTime)ctx.Row.TanggalPenagihan,
-                        JumlahBiaya = ctx.Row.JumlahBiaya.Trim(),
+                        TanggalPenagihan = (DateTime)ctx.Row.TanggalPenagihan!,
+                        JumlahBiaya = ctx.Row.JumlahBiaya!.Value,
                         IsActive = true,
                         CreatedBy = userId,
                         CreatedAt = now
@@ -581,7 +452,7 @@ namespace ApiService.Application.Services
                             NoPekerja = ctx.Row.NoPekerja.Trim(),
                             NamaPekerja = ctx.Pekerja.NamaPekerja,
                             JabatanName = ctx.Pekerja.Jabatan?.Name ?? string.Empty,
-                            RfIdCode = member.RfIdCode,
+                            RfIds = ctx.Pekerja.RfIds,
                             NamaPeriode = ctx.Periode.NamaPeriode,
                             TanggalPenagihan = member.TanggalPenagihan,
                             JumlahBiaya = member.JumlahBiaya
@@ -602,31 +473,8 @@ namespace ApiService.Application.Services
             }
             catch (DbUpdateException ex)
             {
-                var dbMessage = ex.InnerException?.Message ?? ex.Message;
-
-                if (dbMessage.Contains("IX_MemberParkir_RfIdCode", StringComparison.OrdinalIgnoreCase))
-                {
-                    response.Errors.Add(new ImportRowError
-                    {
-                        RowNumber = 0,
-                        Column = "Rfid",
-                        Message = "Terdapat RF.ID yang sudah terdaftar."
-                    });
-                }
-
-                if (response.Errors.Count > 0)
-                {
-                    response.ErrorCount = response.Errors.Count;
-                    response.SuccessCount = 0;
-                    response.InsertedMemberParkir = 0;
-
-                    return ApiResponse<MemberParkirImportResponse>.SuccessResponse(
-                        response,
-                        "Import dibatalkan karena terdapat data duplikat.");
-                }
-
                 return ApiResponse<MemberParkirImportResponse>.ErrorResponse(
-                    "ERR-MEMBERPARKIR-IMPORT-001", "Terjadi kesalahan saat menyimpan data Member Parkir.");
+                    "ERR-MEMBERPARKIR-IMPORT-001", $"Terjadi kesalahan saat menyimpan data Member Parkir: {ex.InnerException?.Message ?? ex.Message}");
             }
             catch (Exception ex)
             {
@@ -640,7 +488,7 @@ namespace ApiService.Application.Services
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("MemberParkir");
 
-            var headers = new[] { "NoPekerja", "Rfid", "Periode", "TanggalPenagihan", "JumlahBiaya" };
+            var headers = new[] { "NoPekerja", "Periode", "TanggalPenagihan", "JumlahBiaya" };
             for (var i = 0; i < headers.Length; i++)
                 sheet.Cell(MemberParkirImportHeaderRow, i + 1).Value = headers[i];
 
@@ -651,13 +499,18 @@ namespace ApiService.Application.Services
             headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
             // Baris contoh (italic abu-abu - harus dihapus/ditimpa user)
+            // JumlahBiaya: angka murni (Number), BUKAN teks berformat mata uang.
             sheet.Cell(2, 1).Value = "19280027";
-            sheet.Cell(2, 2).Value = "1234567891";
-            sheet.Cell(2, 3).Value = "Januari 2026";
-            sheet.Cell(2, 4).Value = "2026-09-11";
-            sheet.Cell(2, 5).Value = "Rp.999.000.000";
+            sheet.Cell(2, 2).Value = "Januari 2026";
+            sheet.Cell(2, 3).Value = new DateTime(2026, 9, 11);
+            sheet.Cell(2, 4).Value = 999000000;
             sheet.Range(2, 1, 2, headers.Length).Style.Font.Italic = true;
             sheet.Range(2, 1, 2, headers.Length).Style.Font.FontColor = XLColor.Gray;
+
+            // Format kolom JumlahBiaya sebagai angka dengan pemisah ribuan, biar user tahu
+            // ini harus diisi angka murni (bukan "Rp.999.000.000" sebagai teks).
+            sheet.Column(4).Style.NumberFormat.Format = "#,##0";
+            sheet.Column(3).Style.DateFormat.Format = "yyyy-mm-dd";
 
             sheet.Columns().AdjustToContents();
 
@@ -680,26 +533,6 @@ namespace ApiService.Application.Services
                 pekerjaRefSheet.Cell(i + 2, 3).Value = pekerjas[i].Jabatan?.Name ?? string.Empty;
             }
             pekerjaRefSheet.Columns().AdjustToContents();
-
-            // Sheet referensi RF.ID - kode kartu + pekerja pemegang (untuk auto-fill Rfid)
-            var rfIds = await _context.RfIds
-                .Include(r => r.Pekerja)
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .OrderBy(x => x.RfIdCode)
-                .ToListAsync();
-
-            var rfidRefSheet = workbook.Worksheets.Add("Referensi RF.ID");
-            rfidRefSheet.Cell(1, 1).Value = "RfIdCode (Valid)";
-            rfidRefSheet.Cell(1, 2).Value = "No Pekerja";
-            rfidRefSheet.Cell(1, 3).Value = "Nama Pekerja";
-            rfidRefSheet.Range(1, 1, 1, 3).Style.Font.Bold = true;
-            for (var i = 0; i < rfIds.Count; i++)
-            {
-                rfidRefSheet.Cell(i + 2, 1).Value = rfIds[i].RfIdCode;
-                rfidRefSheet.Cell(i + 2, 2).Value = rfIds[i].Pekerja?.NoPekerja ?? string.Empty;
-                rfidRefSheet.Cell(i + 2, 3).Value = rfIds[i].Pekerja?.NamaPekerja ?? string.Empty;
-            }
-            rfidRefSheet.Columns().AdjustToContents();
 
             // Sheet referensi Periode - NamaPeriode + TanggalAwal + TanggalAkhir
             var periodes = await _context.Periodes
@@ -794,6 +627,51 @@ namespace ApiService.Application.Services
             }
         }
 
+        private static IXLCell? GetImportCell(
+            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap, string header)
+        {
+            var normalized = NormalizeMemberParkirImportHeader(header);
+            if (!headerMap.TryGetValue(normalized, out var column))
+                return null;
+
+            return sheet.Cell(row, column);
+        }
+
+        /// <summary>
+        /// Parse JumlahBiaya dari cell Excel ke decimal:
+        /// 1) Cell numerik -> ambil langsung nilainya (tidak perlu parsing teks).
+        /// 2) Cell teks -> bersihkan simbol non-angka ("Rp", spasi, dll), lalu deteksi
+        ///    apakah koma atau titik dipakai sebagai pemisah desimal berdasarkan mana
+        ///    yang muncul terakhir, supaya format "999.000.000" maupun "999000000,50"
+        ///    sama-sama bisa terbaca.
+        /// </summary>
+        private static decimal? ParseImportDecimal(
+            IXLWorksheet sheet, int row, Dictionary<string, int> headerMap, string header)
+        {
+            var cell = GetImportCell(sheet, row, headerMap, header);
+            if (cell == null) return null;
+
+            if (cell.DataType == XLDataType.Number)
+                return cell.GetValue<decimal>();
+
+            var text = cell.GetString()?.Trim();
+            if (string.IsNullOrWhiteSpace(text)) return null;
+
+            var cleaned = new string(text.Where(c => char.IsDigit(c) || c is '.' or ',' or '-').ToArray());
+            if (string.IsNullOrEmpty(cleaned)) return null;
+
+            var lastComma = cleaned.LastIndexOf(',');
+            var lastDot = cleaned.LastIndexOf('.');
+
+            var normalized = lastComma > lastDot
+                ? cleaned.Replace(".", "").Replace(",", ".")   // koma = desimal, titik = ribuan
+                : cleaned.Replace(",", "");                     // titik = desimal (atau tanpa desimal), koma = ribuan
+
+            return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var value)
+                ? value
+                : (decimal?)null;
+        }
+
         /// <summary>
         /// Ambil tanggal dari cell Excel:
         /// 1) Kalau cell type DATE -> ClosedXML GetDateTime() langsung return DateTime (no parsing need).
@@ -875,7 +753,6 @@ namespace ApiService.Application.Services
             public MemberParkirImportRow Row { get; set; } = null!;
             public Pekerja Pekerja { get; set; } = null!;
             public Periode Periode { get; set; } = null!;
-            public string RfIdCode { get; set; } = string.Empty;
         }
 
         private static MemberParkirDto MapToDto(MemberParkir m) => new()
@@ -886,7 +763,8 @@ namespace ApiService.Application.Services
             NamaPekerja = m.Pekerja?.NamaPekerja ?? string.Empty,
             JabatanId = m.JabatanId,
             JabatanName = m.Jabatan?.Name ?? m.Pekerja?.Jabatan?.Name ?? string.Empty,
-            RfIdCode = m.RfIdCode,
+            // RF.ID selalu ditarik dari Pekerja.RfIds (bisa kosong, bisa lebih dari satu)
+            RfIds = m.Pekerja?.RfIds ?? new List<string>(),
             PeriodeId = m.PeriodeId,
             NamaPeriode = m.Periode?.NamaPeriode ?? string.Empty,
             TanggalPenagihan = m.TanggalPenagihan,

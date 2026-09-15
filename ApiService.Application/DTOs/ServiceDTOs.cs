@@ -804,7 +804,7 @@ namespace ApiService.Application.DTOs
         public List<DriverImportPreviewDto> Preview { get; set; } = new();
     }
 
-        // ===================================
+    // ===================================
     // PERIODE (Data Master > Periode)
     // ===================================
     public class CreatePeriodeRequest
@@ -884,29 +884,19 @@ namespace ApiService.Application.DTOs
     public class CreateMemberParkirRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        /// <summary>
-        /// Opsional dari client - server yang ambil/validasi: kalau kosong,
-        /// kode RF.ID pertama dari Pekerja.RfIds yang dipakai.
-        /// </summary>
-        public string? RfIdCode { get; set; }
         /// <summary>Periode di mana record ini dibuat (dropdown dari master Periode).</summary>
         public string PeriodeId { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
-        public string JumlahBiaya { get; set; } = string.Empty;
+        public decimal JumlahBiaya { get; set; }
     }
 
     public class UpdateMemberParkirRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        /// <summary>
-        /// Opsional dari client - server yang ambil/validasi: kalau kosong,
-        /// kode RF.ID pertama dari Pekerja.RfIds yang dipakai.
-        /// </summary>
-        public string? RfIdCode { get; set; }
         /// <summary>Periode di mana record ini dibuat (dropdown dari master Periode).</summary>
         public string PeriodeId { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
-        public string JumlahBiaya { get; set; } = string.Empty;
+        public decimal JumlahBiaya { get; set; }
         public bool IsActive { get; set; } = true;
     }
 
@@ -918,11 +908,18 @@ namespace ApiService.Application.DTOs
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
-        public string RfIdCode { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Semua kode RF.ID milik Pekerja ini (bisa kosong kalau belum punya RF.ID
+        /// sama sekali, atau berisi lebih dari 1 kalau punya beberapa kartu).
+        /// Ditarik langsung dari Pekerja.RfIds, bukan disimpan di MemberParkir.
+        /// </summary>
+        public List<string> RfIds { get; set; } = new();
+
         public string PeriodeId { get; set; } = string.Empty;
         public string NamaPeriode { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
-        public string JumlahBiaya { get; set; } = string.Empty;
+        public decimal JumlahBiaya { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? ModifiedAt { get; set; }
@@ -930,7 +927,7 @@ namespace ApiService.Application.DTOs
 
     public class MemberParkirFilterRequest
     {
-        /// <summary>Cari berdasarkan No.Pekerja, NamaPekerja, Rfid.</summary>
+        /// <summary>Cari berdasarkan No.Pekerja atau Nama Pekerja.</summary>
         public string? Search { get; set; }
         public string? JabatanId { get; set; }
         public string? PeriodeId { get; set; }
@@ -939,20 +936,21 @@ namespace ApiService.Application.DTOs
         public int PageSize { get; set; } = 10;
     }
 
-        // ===================================
+    // ===================================
     // MEMBER PARKIR - BULK UPLOAD
-    // Kolom template: NoPekerja | Rfid | Periode | TanggalPenagihan | JumlahBiaya
-    // Lookup Pekerja via NoPekerja; Periode via NamaPeriode
+    // Kolom template: NoPekerja | Periode | TanggalPenagihan | JumlahBiaya
+    // Lookup Pekerja via NoPekerja; Periode via NamaPeriode.
+    // RF.ID TIDAK ada di template - selalu ditarik dari Pekerja.RfIds saat ditampilkan.
     // ===================================
     public class MemberParkirImportRow
     {
         public int RowNumber { get; set; }
         public string NoPekerja { get; set; } = string.Empty;
-        public string RfIdCode { get; set; } = string.Empty;
         public string PeriodeName { get; set; } = string.Empty;
         public string TanggalPenagihanText { get; set; } = string.Empty;
         public DateTime? TanggalPenagihan { get; set; }
-        public string JumlahBiaya { get; set; } = string.Empty;
+        public string JumlahBiayaText { get; set; } = string.Empty;
+        public decimal? JumlahBiaya { get; set; }
     }
 
     public class MemberParkirImportPreviewDto
@@ -960,10 +958,10 @@ namespace ApiService.Application.DTOs
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
-        public string RfIdCode { get; set; } = string.Empty;
+        public List<string> RfIds { get; set; } = new();
         public string NamaPeriode { get; set; } = string.Empty;
         public DateTime TanggalPenagihan { get; set; }
-        public string JumlahBiaya { get; set; } = string.Empty;
+        public decimal JumlahBiaya { get; set; }
     }
 
     public class MemberParkirImportResponse

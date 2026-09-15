@@ -268,9 +268,8 @@ public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMember
             {
                 RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
                 RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.RfIdCode).MaximumLength(50).When(x => x.RfIdCode != null);
                 RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-                RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+                RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
             }
         }
 
@@ -280,9 +279,8 @@ public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMember
             {
                 RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
                 RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.RfIdCode).MaximumLength(50).When(x => x.RfIdCode != null);
                 RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-                RuleFor(x => x.JumlahBiaya).NotEmpty().MaximumLength(50).WithMessage("Jumlah biaya wajib diisi");
+                RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
             }
         }
 }

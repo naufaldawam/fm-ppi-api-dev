@@ -243,20 +243,19 @@ namespace ApiService.Infrastructure.Persistence
 
             // ------------------------------------------------------------
             // MEMBER PARKIR (Data Master > Member Parkir)
-            // Pekerja + Jabatan (snapshot otomatis dari Pekerja) + RfIdCode
+            // Pekerja + Jabatan (snapshot otomatis dari Pekerja). RF.ID TIDAK
+            // disimpan di sini - selalu ditarik dari Pekerja.RfIds saat ditampilkan.
             // ------------------------------------------------------------
             modelBuilder.Entity<MemberParkir>(entity =>
             {
                 entity.ToTable("MemberParkir");
                 entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.RfIdCode).IsUnique();
                 entity.HasIndex(e => e.PekerjaId);
                 entity.HasIndex(e => e.JabatanId);
                 entity.HasIndex(e => e.PeriodeId);
                 entity.HasIndex(e => e.IsDeleted);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
-                entity.Property(e => e.RfIdCode).HasMaxLength(50);
-                entity.Property(e => e.JumlahBiaya).HasMaxLength(50);
+                entity.Property(e => e.JumlahBiaya).HasColumnType("decimal(18,2)");
 
                 entity.HasOne(e => e.Pekerja)
                     .WithMany()
