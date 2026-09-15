@@ -167,5 +167,13 @@ namespace ApiService.API.Controllers
 
             return StatusCode(result.StatusCode, result);
         }
+
+        [HttpGet("summary")]
+        [RequirePermission("member-parkir.read")]
+        public async Task<IActionResult> GetSummary([FromQuery] MemberParkirSummaryRequest filter)
+        {
+            var result = await _memberParkirService.GetSummaryAsync(filter);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace ApiService.Application.Services
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
         Task<ApiResponse<MemberParkirImportResponse>> ImportFromExcelAsync(Stream fileStream, string userId);
         Task<ApiResponse<FileResult>> GetImportTemplateAsync();
+        Task<ApiResponse<MemberParkirSummaryDto>> GetSummaryAsync(MemberParkirSummaryRequest filter);
     }
 
     public class MemberParkirService : IMemberParkirService
@@ -567,6 +568,47 @@ namespace ApiService.Application.Services
                 FileName = "Template_Upload_MemberParkir.xlsx",
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 FileStream = resultStream
+            });
+        }
+
+        /// <summary>
+        /// Total record Member Parkir & grand total JumlahBiaya. Kalau PeriodeId diisi,
+        /// dihitung hanya untuk periode itu; kalau kosong, dihitung untuk semua periode.
+        /// </summary>
+        public async Task<ApiResponse<MemberParkirSummaryDto>> GetSummaryAsync(MemberParkirSummaryRequest filter)
+        {
+            string? namaPeriode = null;
+
+            if (!string.IsNullOrEmpty(filter.PeriodeId))
+            {
+                namaPeriode = await _context.Periodes
+                    .Where(p => p.Id == filter.PeriodeId && !p.IsDeleted)
+                    .Select(p => p.NamaPeriode)
+                    .FirstOrDefaultAsync();
+
+                if (namaPeriode == null)
+                    return ApiResponse<MemberParkirSummaryDto>.NotFound("Periode tidak ditemukan");
+            }
+
+            var query = _context.MemberParkirs.Where(m => !m.IsDeleted);
+
+            if (!string.IsNullOrEmpty(filter.PeriodeId))
+                query = query.Where(m => m.PeriodeId == filter.PeriodeId);
+
+            if (filter.IsActive.HasValue)
+                query = query.Where(m => m.IsActive == filter.IsActive.Value);
+
+            var totalMemberParkir = await query.CountAsync();
+            var grandTotalBiaya = totalMemberParkir == 0
+                ? 0m
+                : await query.SumAsync(m => m.JumlahBiaya);
+
+            return ApiResponse<MemberParkirSummaryDto>.SuccessResponse(new MemberParkirSummaryDto
+            {
+                PeriodeId = filter.PeriodeId,
+                NamaPeriode = namaPeriode,
+                TotalMemberParkir = totalMemberParkir,
+                GrandTotalBiaya = grandTotalBiaya
             });
         }
 
