@@ -973,4 +973,28 @@ namespace ApiService.Application.DTOs
         public List<ImportRowError> Errors { get; set; } = new();
         public List<MemberParkirImportPreviewDto> Preview { get; set; } = new();
     }
+
+    // ===================================
+    // MEMBER PARKIR - SUMMARY (Total & Grand Total)
+    // ===================================
+    public class MemberParkirSummaryRequest
+    {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
+        /// <summary>Opsional - kalau diisi, summary difilter berdasarkan status aktif.</summary>
+        public bool? IsActive { get; set; }
+    }
+
+    public class MemberParkirSummaryDto
+    {
+        /// <summary>Filter periode yang dipakai untuk menghitung summary ini (null = semua periode).</summary>
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
+        /// <summary>Jumlah record Member Parkir yang match filter.</summary>
+        public int TotalMemberParkir { get; set; }
+
+        /// <summary>Total keseluruhan JumlahBiaya dari semua record yang match filter.</summary>
+        public decimal GrandTotalBiaya { get; set; }
+    }
 }
