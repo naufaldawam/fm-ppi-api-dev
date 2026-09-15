@@ -9,8 +9,9 @@ namespace ApiService.API.Controllers
 {
     /// <summary>
     /// Data Master > Member Parkir.
-    /// Field: NamaPekerja, Rfid, No.Pekerja, Jabatan (auto-fill dari Pekerja),
-    /// Periode, Tanggal Penagihan, Jumlah Biaya.
+    /// Field input: Pekerja, Periode, Tanggal Penagihan, Jumlah Biaya.
+    /// NamaPekerja / No.Pekerja / Jabatan otomatis dari Pekerja yang dipilih.
+    /// RF.ID TIDAK diinput - ditarik dari Pekerja.RfIds (bisa kosong / lebih dari satu).
     /// </summary>
     [ApiController]
     [Route("member-parkir")]
@@ -48,8 +49,8 @@ namespace ApiService.API.Controllers
 
         /// <summary>
         /// Dropdown Pekerja: setelah user pilih Pekerja,
-        /// FE terisi NamaPekerja, No.Pekerja, Jabatan, dan Rfid
-        /// dari response (rfIds[]).
+        /// FE terisi NamaPekerja, No.Pekerja, Jabatan, dan daftar RfIds (kalau ada)
+        /// dari response (rfIds[] - bisa kosong).
         /// GET /member-parkir/pekerja-lookup?search=xxx&activeOnly=true
         /// GET /member-parkir/pekerja-lookup?pekerjaId=xxx   (prefill satu pekerja)
         /// </summary>
@@ -138,7 +139,8 @@ namespace ApiService.API.Controllers
 
         /// <summary>
         /// Bulk upload data Member Parkir dari file Excel (.xlsx).
-        /// Kolom wajib: NoPekerja | Rfid | Periode | TanggalPenagihan | JumlahBiaya
+        /// Kolom wajib: NoPekerja | Periode | TanggalPenagihan | JumlahBiaya
+        /// RF.ID TIDAK ada di template - selalu ditarik dari Pekerja.RfIds.
         /// Gunakan endpoint download-template untuk mendapatkan file template beserta sheet referensi.
         /// </summary>
         [HttpPost("import-excel")]
