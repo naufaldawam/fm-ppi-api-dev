@@ -98,3 +98,7 @@ Thumbs.db
 /SCM_Smart_Menu.postman_collection.json
 
 **/uploads
+
+# docs
+.docs/
+.agents/
