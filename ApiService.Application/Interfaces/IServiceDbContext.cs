@@ -33,6 +33,8 @@ namespace ApiService.Application.Interfaces
         DbSet<Driver> Drivers { get; set; }
         DbSet<Periode> Periodes { get; set; }
         DbSet<MemberParkir> MemberParkirs { get; set; }
+        DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
+        DbSet<BbmSubmission> BbmSubmissions { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

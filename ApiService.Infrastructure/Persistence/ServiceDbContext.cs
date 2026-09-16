@@ -31,6 +31,8 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<Driver> Drivers { get; set; }
         public DbSet<Periode> Periodes { get; set; }
         public DbSet<MemberParkir> MemberParkirs { get; set; }
+        public DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
+        public DbSet<BbmSubmission> BbmSubmissions { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -270,6 +272,86 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Periode)
                     .WithMany()
                     .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // OPERASIONAL & UPAH (Data Master > Operasional & Upah)
+            // Diinput admin, 1 baris per Pekerja per Periode. RF.ID/No.Pekerja/
+            // Jabatan TIDAK disimpan - selalu ditarik dari Pekerja. Total BBM juga
+            // TIDAK di sini - lihat BbmSubmission (butuh approval terpisah).
+            // ------------------------------------------------------------
+            modelBuilder.Entity<OperasionalUpah>(entity =>
+            {
+                entity.ToTable("OperasionalUpah");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => new { e.PekerjaId, e.PeriodeId }).IsUnique();
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.TotalLembur).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TotalEMoneyMember).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.DanaOps).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TotalParkir).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TotalSewaKendaraan).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.TotalUpahDriver).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // BBM SUBMISSION (Persetujuan Tertunda > Pengajuan BBM Driver)
+            // Diajukan driver dari mobile (nota), bisa banyak baris per Pekerja per
+            // Periode, wajib approval sebelum ikut dihitung ke dashboard.
+            // ------------------------------------------------------------
+            modelBuilder.Entity<BbmSubmission>(entity =>
+            {
+                entity.ToTable("BbmSubmissions");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.DriverId);
+                entity.HasIndex(e => e.AtasanPekerjaId);
+                entity.HasIndex(e => e.KendaraanId);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.JumlahPenggunaanBbm).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.NilaiOdometer).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.NilaiNota).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Status).HasMaxLength(20);
+                entity.Property(e => e.FotoOdometerUrl).HasMaxLength(500);
+                entity.Property(e => e.FotoNotaUrl).HasMaxLength(500);
+                entity.Property(e => e.CatatanTambahan).HasMaxLength(500);
+                entity.Property(e => e.RejectedReason).HasMaxLength(500);
+
+                entity.HasOne(e => e.Driver)
+                    .WithMany()
+                    .HasForeignKey(e => e.DriverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Snapshot Atasan/VP - opsional (nullable FK), boleh kosong kalau
+                // Driver sedang tidak punya Atasan pada saat submit
+                entity.HasOne(e => e.AtasanPekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.AtasanPekerjaId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Kendaraan)
+                    .WithMany()
+                    .HasForeignKey(e => e.KendaraanId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
