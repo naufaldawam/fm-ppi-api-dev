@@ -997,4 +997,265 @@ namespace ApiService.Application.DTOs
         /// <summary>Total keseluruhan JumlahBiaya dari semua record yang match filter.</summary>
         public decimal GrandTotalBiaya { get; set; }
     }
+
+    // ===================================
+    // OPERASIONAL & UPAH (Data Master > Operasional & Upah)
+    // Diinput admin, 1 baris per Pekerja per Periode.
+    // RF.ID / No.Pekerja / Nopek Home/Host / Jabatan TIDAK diinput - selalu ditarik
+    // dari Pekerja. Total BBM TIDAK di sini, lihat BbmSubmission (approval terpisah).
+    // ===================================
+    public class CreateOperasionalUpahRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+    }
+
+    public class UpdateOperasionalUpahRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class OperasionalUpahDto
+    {
+        public string Id { get; set; } = string.Empty;
+
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+
+        /// <summary>Semua kode RF.ID milik Pekerja ini (bisa kosong / lebih dari satu).</summary>
+        public List<string> RfIds { get; set; } = new();
+
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+
+        /// <summary>
+        /// Total BBM yang sudah Approved untuk Pekerja+Periode ini (dari BbmSubmission).
+        /// Bukan input langsung - dihitung dari pengajuan yang sudah disetujui.
+        /// </summary>
+        public decimal TotalBbmApproved { get; set; }
+
+        /// <summary>Jumlah semua komponen biaya di atas (termasuk TotalBbmApproved).</summary>
+        public decimal TotalKeseluruhan { get; set; }
+
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class OperasionalUpahFilterRequest
+    {
+        /// <summary>Cari berdasarkan No.Pekerja atau Nama Pekerja.</summary>
+        public string? Search { get; set; }
+        /// <summary>Filter berdasarkan Jabatan Pekerja (join, bukan kolom sendiri).</summary>
+        public string? JabatanId { get; set; }
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
+    // OPERASIONAL & UPAH - BULK UPLOAD
+    // Kolom template: NoPekerja | Periode | TotalLembur | TotalEMoneyMember | DanaOps |
+    //                 TotalParkir | TotalSewaKendaraan | TotalUpahDriver
+    // Semua kolom nominal OPSIONAL - kosong dianggap 0.
+    // ===================================
+    public class OperasionalUpahImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string PeriodeName { get; set; } = string.Empty;
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+    }
+
+    public class OperasionalUpahImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+        public decimal TotalKeseluruhan { get; set; }
+    }
+
+    public class OperasionalUpahImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedOperasionalUpah { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<OperasionalUpahImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ===================================
+    // OPERASIONAL & UPAH - DASHBOARD / SUMMARY
+    // ===================================
+    public class OperasionalUpahSummaryRequest
+    {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+    }
+
+    public class OperasionalUpahSummaryDto
+    {
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
+        /// <summary>Jumlah record Operasional & Upah yang sudah terisi untuk filter ini.</summary>
+        public int JumlahTerisi { get; set; }
+        /// <summary>Total Pekerja aktif di sistem saat ini - penyebut untuk "X/40 pegawai".</summary>
+        public int TotalPekerjaAktif { get; set; }
+
+        public decimal TotalLembur { get; set; }
+        public decimal TotalEMoneyMember { get; set; }
+        public decimal DanaOps { get; set; }
+        public decimal TotalParkir { get; set; }
+        public decimal TotalSewaKendaraan { get; set; }
+        public decimal TotalUpahDriver { get; set; }
+
+        /// <summary>Total BBM yang sudah Approved (dari BbmSubmission), untuk periode yang sama.</summary>
+        public decimal TotalBbmApproved { get; set; }
+        /// <summary>Jumlah pengajuan BBM yang masih Pending untuk periode yang sama (info tambahan).</summary>
+        public int TotalBbmPending { get; set; }
+
+        /// <summary>Jumlah keseluruhan semua komponen biaya di atas (termasuk TotalBbmApproved).</summary>
+        public decimal GrandTotal { get; set; }
+    }
+
+    // ===================================
+    // BBM SUBMISSION (Persetujuan Tertunda > Pengajuan BBM Driver)
+    // Diajukan Driver dari mobile (wizard 4 langkah), butuh approval sebelum
+    // ikut dihitung sebagai biaya operasional (OperasionalUpah milik VP/Atasan).
+    // ===================================
+    public class CreateBbmSubmissionRequest
+    {
+        public string DriverId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public DateTime TanggalPenggunaan { get; set; }
+        public string KendaraanId { get; set; } = string.Empty;
+        public decimal JumlahPenggunaanBbm { get; set; }
+        public decimal NilaiOdometer { get; set; }
+        public decimal NilaiNota { get; set; }
+        public string? CatatanTambahan { get; set; }
+        // FotoOdometer & FotoNota dikirim terpisah sebagai IFormFile (multipart),
+        // ditangani di layer Controller - tidak masuk DTO data ini.
+    }
+
+    public class RejectBbmSubmissionRequest
+    {
+        public string Reason { get; set; } = string.Empty;
+    }
+
+    public class BbmSubmissionDto
+    {
+        public string Id { get; set; } = string.Empty;
+
+        public string DriverId { get; set; } = string.Empty;
+        public string NoPekerjaDriver { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+
+        public string? AtasanPekerjaId { get; set; }
+        public string NamaVP { get; set; } = string.Empty;
+
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+
+        public DateTime TanggalPenggunaan { get; set; }
+
+        public string KendaraanId { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string JenisBbmName { get; set; } = string.Empty;
+
+        public decimal JumlahPenggunaanBbm { get; set; }
+        public decimal NilaiOdometer { get; set; }
+        public decimal NilaiNota { get; set; }
+
+        public string FotoOdometerUrl { get; set; } = string.Empty;
+        public string FotoNotaUrl { get; set; } = string.Empty;
+        public string? CatatanTambahan { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+        public string? ApprovedBy { get; set; }
+        public DateTime? ApprovedAt { get; set; }
+        public string? RejectedReason { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class BbmSubmissionFilterRequest
+    {
+        /// <summary>Cari berdasarkan No.Pekerja Driver, Nama Driver, atau Nomor Polisi.</summary>
+        public string? Search { get; set; }
+        public string? DriverId { get; set; }
+        public string? AtasanPekerjaId { get; set; }
+        public string? PeriodeId { get; set; }
+        /// <summary>Pending | Approved | Rejected. Kosong = semua status.</summary>
+        public string? Status { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    /// <summary>Opsi Kendaraan untuk dropdown "Nomor Plat" di form mobile, sudah termasuk Jenis BBM.</summary>
+    public class BbmSubmissionKendaraanOptionDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string JenisBbmName { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Data bantu untuk prefill form mobile (Step 1: Informasi Perjalanan +
+    /// dropdown Nomor Plat di Step 2) dalam 1x request, biar mobile app hemat round-trip.
+    /// </summary>
+    public class BbmSubmissionFormInitDto
+    {
+        public string DriverId { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public string NoPekerjaDriver { get; set; } = string.Empty;
+        public string NamaVP { get; set; } = string.Empty;
+
+        public string? PeriodeAktifId { get; set; }
+        public string? NamaPeriodeAktif { get; set; }
+
+        public List<BbmSubmissionKendaraanOptionDto> KendaraanAktif { get; set; } = new();
+    }
 }
