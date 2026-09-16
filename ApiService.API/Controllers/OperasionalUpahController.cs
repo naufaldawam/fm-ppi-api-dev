@@ -11,13 +11,6 @@ using ApiService.API.Filters;
 
 namespace ApiService.API.Controllers
 {
-    /// <summary>
-    /// Operasional &amp; Upah Driver (menu "Operasional &amp; Upah" di sidebar).
-    /// 1 record per Pekerja per Periode yang diinput admin.
-    /// RF.ID / No.Pekerja / Nopek / Jabatan TIDAK diinput - selalu ditarik dari Pekerja.
-    /// Total BBM TIDAK ada di sini - diajukan driver via mobile (BbmSubmission) dan
-    /// hanya yang Approved yang ikut masuk ke GrandTotal dashboard.
-    /// </summary>
     [ApiController]
     [Route("operasional-upah")]
     [Authorize]
@@ -25,9 +18,9 @@ namespace ApiService.API.Controllers
     public class OperasionalUpahController : ControllerBase
     {
         private readonly IOperasionalUpahService _service;
-        private readonly IPekerjaService         _pekerjaService;
-        private readonly IPeriodeService         _periodeService;
-        private readonly ICurrentUser            _currentUser;
+        private readonly IPekerjaService _pekerjaService;
+        private readonly IPeriodeService _periodeService;
+        private readonly ICurrentUser _currentUser;
         private readonly ILogger<OperasionalUpahController> _logger;
 
         public OperasionalUpahController(
@@ -37,17 +30,15 @@ namespace ApiService.API.Controllers
             ICurrentUser currentUser,
             ILogger<OperasionalUpahController> logger)
         {
-            _service        = service;
+            _service = service;
             _pekerjaService = pekerjaService;
             _periodeService = periodeService;
-            _currentUser    = currentUser;
-            _logger         = logger;
+            _currentUser = currentUser;
+            _logger = logger;
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah
         // Datatable list dengan filter Periode, Jabatan, Search, IsActive.
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> GetAll([FromQuery] OperasionalUpahFilterRequest filter)
@@ -56,11 +47,9 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah/summary?periodeId=xxx&isActive=true
         // Dashboard "Summary Operasional dan Upah Driver" - bisa difilter per Periode.
         // GrandTotal sudah termasuk Total BBM Approved. Info BBM Pending juga disertakan.
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("summary")]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> GetSummary([FromQuery] OperasionalUpahSummaryRequest filter)
@@ -69,9 +58,7 @@ namespace ApiService.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah/{id}
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("{id}")]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> GetById(string id)
@@ -80,12 +67,10 @@ namespace ApiService.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah/pekerja-lookup?pekerjaId=xxx
         // Prefill form: FE panggil ini setelah dropdown Pekerja dipilih untuk mengisi
         // otomatis Jabatan, RfIds, NoPekerja, Nopek Home/Host dari data Pekerja.
         // Kalau tidak ada pekerjaId, kembalikan daftar lookup (untuk dropdown Pekerja).
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("pekerja-lookup")]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> GetPekerjaLookup(
@@ -103,10 +88,8 @@ namespace ApiService.API.Controllers
             return StatusCode(list.StatusCode, list);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah/periode-lookup?search=xxx&activeOnly=false
         // Dropdown Periode untuk form Tambah/Edit dan filter datatable.
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("periode-lookup")]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> GetPeriodeLookup(
@@ -117,11 +100,9 @@ namespace ApiService.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // POST /operasional-upah
         // Tambah Operasional & Upah baru. JabatanId otomatis dari Pekerja - jangan
         // dikirim dari client.
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpPost]
         [RequirePermission("operasional-upah.create")]
         public async Task<IActionResult> Create([FromBody] CreateOperasionalUpahRequest request)
@@ -138,9 +119,7 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // PUT /operasional-upah/{id}
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpPut("{id}")]
         [RequirePermission("operasional-upah.update")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateOperasionalUpahRequest request)
@@ -149,9 +128,7 @@ namespace ApiService.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // DELETE /operasional-upah/{id}
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpDelete("{id}")]
         [RequirePermission("operasional-upah.delete")]
         public async Task<IActionResult> Delete(string id)
@@ -160,10 +137,8 @@ namespace ApiService.API.Controllers
             return StatusCode(result.StatusCode, result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /operasional-upah/download-template
         // Download template Excel untuk bulk upload (3 sheet: data, ref Pekerja, ref Periode).
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("download-template")]
         [RequirePermission("operasional-upah.read")]
         public async Task<IActionResult> DownloadTemplate()
@@ -177,14 +152,12 @@ namespace ApiService.API.Controllers
             return File(result.Data.FileStream, result.Data.ContentType, result.Data.FileName);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // POST /operasional-upah/import-excel
         // Bulk upload dari file .xlsx. Kolom: NoPekerja | Periode |
         // TotalLembur | TotalEMoneyMember | DanaOps | TotalParkir |
         // TotalSewaKendaraan | TotalUpahDriver.
         // Kolom nominal opsional (kosong = 0). All-or-nothing: ada 1 error pun
         // tidak ada yang disimpan.
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("import-excel")]
         [RequirePermission("operasional-upah.create")]
         [Consumes("multipart/form-data")]

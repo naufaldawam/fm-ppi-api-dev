@@ -28,9 +28,9 @@ namespace ApiService.API.Controllers
             ICurrentUser currentUser,
             ILogger<BbmSubmissionController> logger)
         {
-            _service        = service;
-            _currentUser    = currentUser;
-            _logger         = logger;
+            _service = service;
+            _currentUser = currentUser;
+            _logger = logger;
         }
 
         // GET /mobile/bbm-submission/form-init/{driverId}
@@ -55,9 +55,7 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET /bbm-submission/{id}
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpGet("{id}")]
         [RequirePermission("bbm-submission.read")]
         public async Task<IActionResult> GetById(string id)
@@ -85,7 +83,7 @@ namespace ApiService.API.Controllers
             //       ke Azure Blob Storage / AWS S3 / MinIO, dll.
             //       Fungsi helper UploadToStorageAsync adalah placeholder.
             var fotoOdometerUrl = await UploadToStorageAsync(fotoOdometer, "bbm/odometer");
-            var fotoNotaUrl     = await UploadToStorageAsync(fotoNota, "bbm/nota");
+            var fotoNotaUrl = await UploadToStorageAsync(fotoNota, "bbm/nota");
 
             var userId = _currentUser.UserId!;
             var result = await _service.CreateAsync(request, fotoOdometerUrl, fotoNotaUrl, userId);
@@ -99,9 +97,7 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // POST /bbm-submission/{id}/approve
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("{id}/approve")]
         [RequirePermission("bbm-submission.approve")]
         public async Task<IActionResult> Approve(string id)
@@ -117,9 +113,7 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // POST /bbm-submission/{id}/reject
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpPost("{id}/reject")]
         [RequirePermission("bbm-submission.approve")]
         public async Task<IActionResult> Reject(string id, [FromBody] RejectBbmSubmissionRequest request)
@@ -136,9 +130,7 @@ namespace ApiService.API.Controllers
             return Ok(result);
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // DELETE /bbm-submission/{id}
-        // ─────────────────────────────────────────────────────────────────────────
         [HttpDelete("{id}")]
         [RequirePermission("bbm-submission.delete")]
         public async Task<IActionResult> Delete(string id)

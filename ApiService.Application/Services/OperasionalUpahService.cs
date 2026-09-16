@@ -46,9 +46,7 @@ namespace ApiService.Application.Services
             _context = context;
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // BASE QUERY
-        // ─────────────────────────────────────────────────────────────────────────
 
         private IQueryable<OperasionalUpah> BaseQuery() =>
             _context.OperasionalUpahs
@@ -57,9 +55,7 @@ namespace ApiService.Application.Services
                 .Include(o => o.Periode)
                 .Where(o => !o.IsDeleted);
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET ALL
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<PagedResponse<OperasionalUpahDto>>> GetAllAsync(OperasionalUpahFilterRequest filter)
         {
@@ -96,16 +92,14 @@ namespace ApiService.Application.Services
 
             return ApiResponse<PagedResponse<OperasionalUpahDto>>.SuccessResponse(new PagedResponse<OperasionalUpahDto>
             {
-                Items      = items.Select(o => MapToDto(o, LookupBbmTotal(bbmTotals, o.PekerjaId, o.PeriodeId))).ToList(),
+                Items = items.Select(o => MapToDto(o, LookupBbmTotal(bbmTotals, o.PekerjaId, o.PeriodeId))).ToList(),
                 TotalCount = totalCount,
                 PageNumber = filter.Page,
-                PageSize   = filter.PageSize
+                PageSize = filter.PageSize
             });
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // GET BY ID
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<OperasionalUpahDto>> GetByIdAsync(string id)
         {
@@ -118,9 +112,7 @@ namespace ApiService.Application.Services
             return ApiResponse<OperasionalUpahDto>.SuccessResponse(MapToDto(item, bbmTotal));
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // PEKERJA LOOKUP (prefill form)
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<PekerjaLookupDto>> GetPekerjaByIdAsync(string pekerjaId)
         {
@@ -136,18 +128,16 @@ namespace ApiService.Application.Services
 
             return ApiResponse<PekerjaLookupDto>.SuccessResponse(new PekerjaLookupDto
             {
-                Id          = pekerja.Id,
-                NoPekerja   = pekerja.NoPekerja,
+                Id = pekerja.Id,
+                NoPekerja = pekerja.NoPekerja,
                 NamaPekerja = pekerja.NamaPekerja,
-                JabatanId   = pekerja.JabatanId,
+                JabatanId = pekerja.JabatanId,
                 JabatanName = pekerja.Jabatan?.Name ?? string.Empty,
-                RfIds       = pekerja.RfIds
+                RfIds = pekerja.RfIds
             });
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // CREATE
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<OperasionalUpahDto>> CreateAsync(CreateOperasionalUpahRequest request, string userId)
         {
@@ -176,29 +166,27 @@ namespace ApiService.Application.Services
 
             var item = new OperasionalUpah
             {
-                PekerjaId          = request.PekerjaId,
-                PeriodeId          = request.PeriodeId,
-                TotalLembur        = request.TotalLembur,
-                TotalEMoneyMember  = request.TotalEMoneyMember,
-                DanaOps            = request.DanaOps,
-                TotalParkir        = request.TotalParkir,
+                PekerjaId = request.PekerjaId,
+                PeriodeId = request.PeriodeId,
+                TotalLembur = request.TotalLembur,
+                TotalEMoneyMember = request.TotalEMoneyMember,
+                DanaOps = request.DanaOps,
+                TotalParkir = request.TotalParkir,
                 TotalSewaKendaraan = request.TotalSewaKendaraan,
-                TotalUpahDriver    = request.TotalUpahDriver,
-                IsActive           = true,
-                CreatedBy          = userId
+                TotalUpahDriver = request.TotalUpahDriver,
+                IsActive = true,
+                CreatedBy = userId
             };
 
             _context.OperasionalUpahs.Add(item);
             await _context.SaveChangesAsync();
 
-            var created  = await BaseQuery().FirstAsync(o => o.Id == item.Id);
+            var created = await BaseQuery().FirstAsync(o => o.Id == item.Id);
             var bbmTotal = await GetApprovedBbmTotalAsync(created.PekerjaId, created.PeriodeId);
             return ApiResponse<OperasionalUpahDto>.SuccessResponse(MapToDto(created, bbmTotal), "Operasional & Upah berhasil ditambahkan");
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // UPDATE
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<OperasionalUpahDto>> UpdateAsync(string id, UpdateOperasionalUpahRequest request, string userId)
         {
@@ -232,28 +220,26 @@ namespace ApiService.Application.Services
                 return ApiResponse<OperasionalUpahDto>.Conflict(
                     "Pekerja ini sudah punya data Operasional & Upah di periode tersebut.");
 
-            item.PekerjaId          = request.PekerjaId;
-            item.PeriodeId          = request.PeriodeId;
-            item.TotalLembur        = request.TotalLembur;
-            item.TotalEMoneyMember  = request.TotalEMoneyMember;
-            item.DanaOps            = request.DanaOps;
-            item.TotalParkir        = request.TotalParkir;
+            item.PekerjaId = request.PekerjaId;
+            item.PeriodeId = request.PeriodeId;
+            item.TotalLembur = request.TotalLembur;
+            item.TotalEMoneyMember = request.TotalEMoneyMember;
+            item.DanaOps = request.DanaOps;
+            item.TotalParkir = request.TotalParkir;
             item.TotalSewaKendaraan = request.TotalSewaKendaraan;
-            item.TotalUpahDriver    = request.TotalUpahDriver;
-            item.IsActive           = request.IsActive;
-            item.ModifiedAt         = DateTime.UtcNow;
-            item.ModifiedBy         = userId;
+            item.TotalUpahDriver = request.TotalUpahDriver;
+            item.IsActive = request.IsActive;
+            item.ModifiedAt = DateTime.UtcNow;
+            item.ModifiedBy = userId;
 
             await _context.SaveChangesAsync();
 
-            var updated  = await BaseQuery().FirstAsync(o => o.Id == item.Id);
+            var updated = await BaseQuery().FirstAsync(o => o.Id == item.Id);
             var bbmTotal = await GetApprovedBbmTotalAsync(updated.PekerjaId, updated.PeriodeId);
             return ApiResponse<OperasionalUpahDto>.SuccessResponse(MapToDto(updated, bbmTotal), "Operasional & Upah berhasil diperbarui");
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // DELETE
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<bool>> DeleteAsync(string id, string userId)
         {
@@ -271,11 +257,9 @@ namespace ApiService.Application.Services
             return ApiResponse<bool>.SuccessResponse(true, "Operasional & Upah berhasil dihapus");
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // DASHBOARD SUMMARY
         // Total BBM = hanya BbmSubmission.Status == "Approved". Pending/Rejected
         // tidak masuk GrandTotal, tapi jumlah Pending ditampilkan sebagai info.
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<OperasionalUpahSummaryDto>> GetSummaryAsync(OperasionalUpahSummaryRequest filter)
         {
@@ -301,7 +285,7 @@ namespace ApiService.Application.Services
             if (filter.IsActive.HasValue)
                 opQuery = opQuery.Where(o => o.IsActive == filter.IsActive.Value);
 
-            var jumlahTerisi   = await opQuery.CountAsync();
+            var jumlahTerisi = await opQuery.CountAsync();
             var totalPekerjaAktif = await _context.Pekerjas.CountAsync(p => !p.IsDeleted && p.IsActive);
 
             decimal totalLembur = 0, totalEmoney = 0, totalDanaOps = 0,
@@ -313,21 +297,21 @@ namespace ApiService.Application.Services
                     .GroupBy(_ => 1)
                     .Select(g => new
                     {
-                        Lembur  = g.Sum(o => o.TotalLembur),
-                        EMoney  = g.Sum(o => o.TotalEMoneyMember),
-                        Dana    = g.Sum(o => o.DanaOps),
-                        Parkir  = g.Sum(o => o.TotalParkir),
-                        Sewa    = g.Sum(o => o.TotalSewaKendaraan),
-                        Upah    = g.Sum(o => o.TotalUpahDriver)
+                        Lembur = g.Sum(o => o.TotalLembur),
+                        EMoney = g.Sum(o => o.TotalEMoneyMember),
+                        Dana = g.Sum(o => o.DanaOps),
+                        Parkir = g.Sum(o => o.TotalParkir),
+                        Sewa = g.Sum(o => o.TotalSewaKendaraan),
+                        Upah = g.Sum(o => o.TotalUpahDriver)
                     })
                     .FirstAsync();
 
-                totalLembur  = agg.Lembur;
-                totalEmoney  = agg.EMoney;
+                totalLembur = agg.Lembur;
+                totalEmoney = agg.EMoney;
                 totalDanaOps = agg.Dana;
-                totalParkir  = agg.Parkir;
-                totalSewa    = agg.Sewa;
-                totalUpah    = agg.Upah;
+                totalParkir = agg.Parkir;
+                totalSewa = agg.Sewa;
+                totalUpah = agg.Upah;
             }
 
             // ── Agregat BBM (dari BbmSubmission, hanya Approved) ────────────────
@@ -348,31 +332,29 @@ namespace ApiService.Application.Services
 
             return ApiResponse<OperasionalUpahSummaryDto>.SuccessResponse(new OperasionalUpahSummaryDto
             {
-                PeriodeId         = filter.PeriodeId,
-                NamaPeriode       = namaPeriode,
-                JumlahTerisi      = jumlahTerisi,
+                PeriodeId = filter.PeriodeId,
+                NamaPeriode = namaPeriode,
+                JumlahTerisi = jumlahTerisi,
                 TotalPekerjaAktif = totalPekerjaAktif,
-                TotalLembur       = totalLembur,
+                TotalLembur = totalLembur,
                 TotalEMoneyMember = totalEmoney,
-                DanaOps           = totalDanaOps,
-                TotalParkir       = totalParkir,
+                DanaOps = totalDanaOps,
+                TotalParkir = totalParkir,
                 TotalSewaKendaraan = totalSewa,
-                TotalUpahDriver   = totalUpah,
-                TotalBbmApproved  = totalBbmApproved,
-                TotalBbmPending   = totalBbmPending,
-                GrandTotal        = grandTotal
+                TotalUpahDriver = totalUpah,
+                TotalBbmApproved = totalBbmApproved,
+                TotalBbmPending = totalBbmPending,
+                GrandTotal = grandTotal
             });
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // BULK UPLOAD
         // Kolom: NoPekerja | Periode | TotalLembur | TotalEMoneyMember | DanaOps |
         //        TotalParkir | TotalSewaKendaraan | TotalUpahDriver
         // NoPekerja & Periode wajib; 6 kolom nominal OPSIONAL (kosong = 0).
-        // ─────────────────────────────────────────────────────────────────────────
 
-        private const int HeaderRow      = 1;
-        private const int DataStartRow   = 2;
+        private const int HeaderRow = 1;
+        private const int DataStartRow = 2;
 
         private static readonly string[] RequiredHeaders = { "nopekerja", "periode" };
 
@@ -397,7 +379,7 @@ namespace ApiService.Application.Services
                     return ApiResponse<OperasionalUpahImportResponse>.BadRequest("Worksheet kosong.");
 
                 var headerMap = BuildHeaderMap(sheet, HeaderRow);
-                var lastRow   = usedRange.LastRow().RowNumber();
+                var lastRow = usedRange.LastRow().RowNumber();
 
                 var missingHeaders = RequiredHeaders.Where(h => !headerMap.ContainsKey(h)).ToList();
                 if (missingHeaders.Count > 0)
@@ -415,19 +397,19 @@ namespace ApiService.Application.Services
 
                     var parsed = new OperasionalUpahImportRow
                     {
-                        RowNumber         = row,
-                        NoPekerja         = GetText(sheet, row, headerMap, "NoPekerja"),
-                        PeriodeName       = GetText(sheet, row, headerMap, "Periode"),
-                        TotalLembur        = ParseOptionalDecimal(sheet, row, headerMap, "TotalLembur",       response.Errors),
-                        TotalEMoneyMember  = ParseOptionalDecimal(sheet, row, headerMap, "TotalEMoneyMember", response.Errors),
-                        DanaOps            = ParseOptionalDecimal(sheet, row, headerMap, "DanaOps",            response.Errors),
-                        TotalParkir        = ParseOptionalDecimal(sheet, row, headerMap, "TotalParkir",        response.Errors),
+                        RowNumber = row,
+                        NoPekerja = GetText(sheet, row, headerMap, "NoPekerja"),
+                        PeriodeName = GetText(sheet, row, headerMap, "Periode"),
+                        TotalLembur = ParseOptionalDecimal(sheet, row, headerMap, "TotalLembur", response.Errors),
+                        TotalEMoneyMember = ParseOptionalDecimal(sheet, row, headerMap, "TotalEMoneyMember", response.Errors),
+                        DanaOps = ParseOptionalDecimal(sheet, row, headerMap, "DanaOps", response.Errors),
+                        TotalParkir = ParseOptionalDecimal(sheet, row, headerMap, "TotalParkir", response.Errors),
                         TotalSewaKendaraan = ParseOptionalDecimal(sheet, row, headerMap, "TotalSewaKendaraan", response.Errors),
-                        TotalUpahDriver    = ParseOptionalDecimal(sheet, row, headerMap, "TotalUpahDriver",    response.Errors)
+                        TotalUpahDriver = ParseOptionalDecimal(sheet, row, headerMap, "TotalUpahDriver", response.Errors)
                     };
 
                     ValidateRequired(response.Errors, row, "NoPekerja", parsed.NoPekerja);
-                    ValidateRequired(response.Errors, row, "Periode",   parsed.PeriodeName);
+                    ValidateRequired(response.Errors, row, "Periode", parsed.PeriodeName);
 
                     parsedRows.Add(parsed);
                 }
@@ -447,14 +429,14 @@ namespace ApiService.Application.Services
                     response.Errors.Add(new ImportRowError
                     {
                         RowNumber = dup.RowNumber,
-                        Column    = "NoPekerja",
-                        Message   = $"NoPekerja '{dup.NoPekerja}' + Periode '{dup.PeriodeName}' duplikat dalam file."
+                        Column = "NoPekerja",
+                        Message = $"NoPekerja '{dup.NoPekerja}' + Periode '{dup.PeriodeName}' duplikat dalam file."
                     });
 
                 // ── Load master data sekaligus ───────────────────────────────────
-                var pekerjas      = await _context.Pekerjas.Include(p => p.Jabatan).Where(p => !p.IsDeleted).ToListAsync();
-                var periodes      = await _context.Periodes.Where(p => !p.IsDeleted).ToListAsync();
-                var existingKeys  = (await _context.OperasionalUpahs.Where(o => !o.IsDeleted)
+                var pekerjas = await _context.Pekerjas.Include(p => p.Jabatan).Where(p => !p.IsDeleted).ToListAsync();
+                var periodes = await _context.Periodes.Where(p => !p.IsDeleted).ToListAsync();
+                var existingKeys = (await _context.OperasionalUpahs.Where(o => !o.IsDeleted)
                                         .Select(o => new { o.PekerjaId, o.PeriodeId })
                                         .ToListAsync())
                                     .Select(o => $"{o.PekerjaId}|{o.PeriodeId}")
@@ -476,8 +458,8 @@ namespace ApiService.Application.Services
                         response.Errors.Add(new ImportRowError
                         {
                             RowNumber = r.RowNumber,
-                            Column    = "NoPekerja",
-                            Message   = $"NoPekerja '{r.NoPekerja}' tidak ditemukan di master Pekerja."
+                            Column = "NoPekerja",
+                            Message = $"NoPekerja '{r.NoPekerja}' tidak ditemukan di master Pekerja."
                         });
                         continue;
                     }
@@ -490,8 +472,8 @@ namespace ApiService.Application.Services
                         response.Errors.Add(new ImportRowError
                         {
                             RowNumber = r.RowNumber,
-                            Column    = "Periode",
-                            Message   = $"Periode '{r.PeriodeName}' tidak ditemukan di master Periode."
+                            Column = "Periode",
+                            Message = $"Periode '{r.PeriodeName}' tidak ditemukan di master Periode."
                         });
                         continue;
                     }
@@ -502,8 +484,8 @@ namespace ApiService.Application.Services
                         response.Errors.Add(new ImportRowError
                         {
                             RowNumber = r.RowNumber,
-                            Column    = "NoPekerja",
-                            Message   = $"Operasional & Upah untuk '{r.NoPekerja}' periode '{r.PeriodeName}' sudah ada."
+                            Column = "NoPekerja",
+                            Message = $"Operasional & Upah untuk '{r.NoPekerja}' periode '{r.PeriodeName}' sudah ada."
                         });
                         continue;
                     }
@@ -514,7 +496,7 @@ namespace ApiService.Application.Services
                 // ── All-or-nothing ───────────────────────────────────────────────
                 if (response.Errors.Count > 0)
                 {
-                    response.ErrorCount   = response.Errors.Count;
+                    response.ErrorCount = response.Errors.Count;
                     response.SuccessCount = 0;
                     return ApiResponse<OperasionalUpahImportResponse>.SuccessResponse(
                         response,
@@ -522,24 +504,24 @@ namespace ApiService.Application.Services
                 }
 
                 // ── Build & Save ─────────────────────────────────────────────────
-                var now      = DateTime.UtcNow;
+                var now = DateTime.UtcNow;
                 var newItems = new List<OperasionalUpah>();
 
                 foreach (var (r, pekerja, periode) in contextRows)
                 {
                     var entity = new OperasionalUpah
                     {
-                        PekerjaId          = pekerja.Id,
-                        PeriodeId          = periode.Id,
-                        TotalLembur        = r.TotalLembur,
-                        TotalEMoneyMember  = r.TotalEMoneyMember,
-                        DanaOps            = r.DanaOps,
-                        TotalParkir        = r.TotalParkir,
+                        PekerjaId = pekerja.Id,
+                        PeriodeId = periode.Id,
+                        TotalLembur = r.TotalLembur,
+                        TotalEMoneyMember = r.TotalEMoneyMember,
+                        DanaOps = r.DanaOps,
+                        TotalParkir = r.TotalParkir,
                         TotalSewaKendaraan = r.TotalSewaKendaraan,
-                        TotalUpahDriver    = r.TotalUpahDriver,
-                        IsActive           = true,
-                        CreatedBy          = userId,
-                        CreatedAt          = now
+                        TotalUpahDriver = r.TotalUpahDriver,
+                        IsActive = true,
+                        CreatedBy = userId,
+                        CreatedAt = now
                     };
 
                     newItems.Add(entity);
@@ -551,17 +533,17 @@ namespace ApiService.Application.Services
 
                         response.Preview.Add(new OperasionalUpahImportPreviewDto
                         {
-                            NoPekerja         = pekerja.NoPekerja,
-                            NamaPekerja       = pekerja.NamaPekerja,
-                            JabatanName       = pekerja.Jabatan?.Name ?? string.Empty,
-                            NamaPeriode       = periode.NamaPeriode,
-                            TotalLembur        = r.TotalLembur,
-                            TotalEMoneyMember  = r.TotalEMoneyMember,
-                            DanaOps            = r.DanaOps,
-                            TotalParkir        = r.TotalParkir,
+                            NoPekerja = pekerja.NoPekerja,
+                            NamaPekerja = pekerja.NamaPekerja,
+                            JabatanName = pekerja.Jabatan?.Name ?? string.Empty,
+                            NamaPeriode = periode.NamaPeriode,
+                            TotalLembur = r.TotalLembur,
+                            TotalEMoneyMember = r.TotalEMoneyMember,
+                            DanaOps = r.DanaOps,
+                            TotalParkir = r.TotalParkir,
                             TotalSewaKendaraan = r.TotalSewaKendaraan,
-                            TotalUpahDriver    = r.TotalUpahDriver,
-                            TotalKeseluruhan   = total
+                            TotalUpahDriver = r.TotalUpahDriver,
+                            TotalKeseluruhan = total
                         });
                     }
                 }
@@ -570,8 +552,8 @@ namespace ApiService.Application.Services
                 await _context.SaveChangesAsync();
 
                 response.InsertedOperasionalUpah = newItems.Count;
-                response.SuccessCount            = newItems.Count;
-                response.ErrorCount              = 0;
+                response.SuccessCount = newItems.Count;
+                response.ErrorCount = 0;
 
                 return ApiResponse<OperasionalUpahImportResponse>.SuccessResponse(
                     response,
@@ -591,9 +573,7 @@ namespace ApiService.Application.Services
             }
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // TEMPLATE EXCEL
-        // ─────────────────────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<FileResult>> GetImportTemplateAsync()
         {
@@ -614,7 +594,7 @@ namespace ApiService.Application.Services
             hr.Style.Font.Bold = true;
             hr.Style.Fill.BackgroundColor = XLColor.FromHtml("#DCEEE8");
             hr.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            hr.Style.Border.InsideBorder  = XLBorderStyleValues.Thin;
+            hr.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
             // Baris contoh (abu-abu/italic – harus ditimpa user)
             var exRow = new object[] { "19280027", "Januari 2026", 500000, 200000, 1000000, 150000, 3000000, 4500000 };
@@ -677,15 +657,13 @@ namespace ApiService.Application.Services
 
             return ApiResponse<FileResult>.Ok(new FileResult
             {
-                FileName    = "Template_Upload_OperasionalUpah.xlsx",
+                FileName = "Template_Upload_OperasionalUpah.xlsx",
                 ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                FileStream  = new MemoryStream(bytes)
+                FileStream = new MemoryStream(bytes)
             });
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // BBM HELPERS
-        // ─────────────────────────────────────────────────────────────────────────
 
         private async Task<decimal> GetApprovedBbmTotalAsync(string pekerjaId, string periodeId)
         {
@@ -702,7 +680,7 @@ namespace ApiService.Application.Services
         private async Task<Dictionary<string, decimal>> GetApprovedBbmTotalsBatchAsync(
             IEnumerable<(string PekerjaId, string PeriodeId)> pairs)
         {
-            var list       = pairs.Distinct().ToList();
+            var list = pairs.Distinct().ToList();
             if (list.Count == 0) return new Dictionary<string, decimal>();
 
             var pekerjaIds = list.Select(x => x.PekerjaId).Distinct().ToList();
@@ -726,13 +704,11 @@ namespace ApiService.Application.Services
         private static decimal LookupBbmTotal(Dictionary<string, decimal> dict, string pekerjaId, string periodeId) =>
             dict.TryGetValue($"{pekerjaId}|{periodeId}", out var v) ? v : 0m;
 
-        // ─────────────────────────────────────────────────────────────────────────
         // EXCEL IMPORT HELPERS
-        // ─────────────────────────────────────────────────────────────────────────
 
         private static Dictionary<string, int> BuildHeaderMap(IXLWorksheet sheet, int headerRow)
         {
-            var result     = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            var result = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             var lastColumn = sheet.RangeUsed()?.LastColumn().ColumnNumber() ?? 0;
 
             for (var col = 1; col <= lastColumn; col++)
@@ -770,8 +746,8 @@ namespace ApiService.Application.Services
                 errors.Add(new ImportRowError
                 {
                     RowNumber = row,
-                    Column    = col,
-                    Message   = $"Kolom '{col}' wajib diisi."
+                    Column = col,
+                    Message = $"Kolom '{col}' wajib diisi."
                 });
         }
 
@@ -802,9 +778,9 @@ namespace ApiService.Application.Services
             var text = cell.GetString()?.Trim();
             if (string.IsNullOrWhiteSpace(text)) return 0m; // kosong = 0, bukan error
 
-            var cleaned   = new string(text.Where(c => char.IsDigit(c) || c is '.' or ',' or '-').ToArray());
+            var cleaned = new string(text.Where(c => char.IsDigit(c) || c is '.' or ',' or '-').ToArray());
             var lastComma = cleaned.LastIndexOf(',');
-            var lastDot   = cleaned.LastIndexOf('.');
+            var lastDot = cleaned.LastIndexOf('.');
 
             var normalized = lastComma > lastDot
                 ? cleaned.Replace(".", "").Replace(",", ".")
@@ -815,8 +791,8 @@ namespace ApiService.Application.Services
                 errors.Add(new ImportRowError
                 {
                     RowNumber = row,
-                    Column    = header,
-                    Message   = $"'{header}' tidak valid. Isi angka murni atau kosongkan (default 0)."
+                    Column = header,
+                    Message = $"'{header}' tidak valid. Isi angka murni atau kosongkan (default 0)."
                 });
                 return 0m;
             }
@@ -830,9 +806,7 @@ namespace ApiService.Application.Services
             return parsed;
         }
 
-        // ─────────────────────────────────────────────────────────────────────────
         // MAP TO DTO
-        // ─────────────────────────────────────────────────────────────────────────
 
         private static OperasionalUpahDto MapToDto(OperasionalUpah o, decimal totalBbmApproved)
         {
@@ -843,28 +817,28 @@ namespace ApiService.Application.Services
 
             return new OperasionalUpahDto
             {
-                Id                 = o.Id,
-                PekerjaId          = o.PekerjaId,
-                NoPekerja          = o.Pekerja?.NoPekerja    ?? string.Empty,
-                NopekHome          = o.Pekerja?.NopekHome    ?? string.Empty,
-                NopekHost          = o.Pekerja?.NopekHost    ?? string.Empty,
-                NamaPekerja        = o.Pekerja?.NamaPekerja  ?? string.Empty,
-                JabatanId          = o.Pekerja?.JabatanId    ?? string.Empty,
-                JabatanName        = o.Pekerja?.Jabatan?.Name ?? string.Empty,
-                RfIds              = o.Pekerja?.RfIds ?? new List<string>(),
-                PeriodeId          = o.PeriodeId,
-                NamaPeriode        = o.Periode?.NamaPeriode  ?? string.Empty,
-                TotalLembur        = o.TotalLembur,
-                TotalEMoneyMember  = o.TotalEMoneyMember,
-                DanaOps            = o.DanaOps,
-                TotalParkir        = o.TotalParkir,
+                Id = o.Id,
+                PekerjaId = o.PekerjaId,
+                NoPekerja = o.Pekerja?.NoPekerja ?? string.Empty,
+                NopekHome = o.Pekerja?.NopekHome ?? string.Empty,
+                NopekHost = o.Pekerja?.NopekHost ?? string.Empty,
+                NamaPekerja = o.Pekerja?.NamaPekerja ?? string.Empty,
+                JabatanId = o.Pekerja?.JabatanId ?? string.Empty,
+                JabatanName = o.Pekerja?.Jabatan?.Name ?? string.Empty,
+                RfIds = o.Pekerja?.RfIds ?? new List<string>(),
+                PeriodeId = o.PeriodeId,
+                NamaPeriode = o.Periode?.NamaPeriode ?? string.Empty,
+                TotalLembur = o.TotalLembur,
+                TotalEMoneyMember = o.TotalEMoneyMember,
+                DanaOps = o.DanaOps,
+                TotalParkir = o.TotalParkir,
                 TotalSewaKendaraan = o.TotalSewaKendaraan,
-                TotalUpahDriver    = o.TotalUpahDriver,
-                TotalBbmApproved   = totalBbmApproved,
-                TotalKeseluruhan   = totalKeseluruhan,
-                IsActive           = o.IsActive,
-                CreatedAt          = o.CreatedAt,
-                ModifiedAt         = o.ModifiedAt
+                TotalUpahDriver = o.TotalUpahDriver,
+                TotalBbmApproved = totalBbmApproved,
+                TotalKeseluruhan = totalKeseluruhan,
+                IsActive = o.IsActive,
+                CreatedAt = o.CreatedAt,
+                ModifiedAt = o.ModifiedAt
             };
         }
     }
