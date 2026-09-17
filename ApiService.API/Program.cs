@@ -133,6 +133,7 @@ builder.Services.AddScoped<IPeriodeService, PeriodeService>();
 builder.Services.AddScoped<IMemberParkirService, MemberParkirService>();
 builder.Services.AddScoped<IBbmSubmissionService, BbmSubmissionService>();
 builder.Services.AddScoped<IOperasionalUpahService, OperasionalUpahService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 // ===================================
 // VALIDATION

@@ -17,6 +17,7 @@ namespace ApiService.API.Controllers
     public class BbmSubmissionController : ControllerBase
     {
         private readonly IBbmSubmissionService _service;
+        private readonly IFileService _fileService;
         private readonly ICurrentUser _currentUser;
         private readonly ILogger<BbmSubmissionController> _logger;
 
@@ -25,10 +26,12 @@ namespace ApiService.API.Controllers
 
         public BbmSubmissionController(
             IBbmSubmissionService service,
+            IFileService fileService,
             ICurrentUser currentUser,
             ILogger<BbmSubmissionController> logger)
         {
             _service = service;
+            _fileService = fileService;
             _currentUser = currentUser;
             _logger = logger;
         }
@@ -78,15 +81,19 @@ namespace ApiService.API.Controllers
                                   ?? ValidatePhoto(fotoNota, "Foto Nota");
             if (validationError != null) return BadRequest(validationError);
 
-            // ── Upload foto ke storage ───────────────────────────────────────────
-            // TODO: Ganti dua baris di bawah dengan implementasi upload
-            //       ke Azure Blob Storage / AWS S3 / MinIO, dll.
-            //       Fungsi helper UploadToStorageAsync adalah placeholder.
-            var fotoOdometerUrl = await UploadToStorageAsync(fotoOdometer, "bbm/odometer");
-            var fotoNotaUrl = await UploadToStorageAsync(fotoNota, "bbm/nota");
-
             var userId = _currentUser.UserId!;
-            var result = await _service.CreateAsync(request, fotoOdometerUrl, fotoNotaUrl, userId);
+
+            var fotoOdometerResult = await _fileService.UploadImageAsync(fotoOdometer, userId);
+            if (!fotoOdometerResult.Success) return BadRequest(fotoOdometerResult);
+
+            var fotoNotaResult = await _fileService.UploadImageAsync(fotoNota, userId);
+            if (!fotoNotaResult.Success) return BadRequest(fotoNotaResult);
+
+            var result = await _service.CreateAsync(
+                request,
+                fotoOdometerResult.Data!.Url,
+                fotoNotaResult.Data!.Url,
+                userId);
 
             if (!result.Success) return BadRequest(result);
 
@@ -160,27 +167,5 @@ namespace ApiService.API.Controllers
             return null;
         }
 
-        /// <summary>
-        /// Placeholder upload foto ke storage.
-        /// Ganti implementasi ini sesuai storage yang dipakai (Azure Blob, S3, MinIO, dst).
-        /// </summary>
-        private static Task<string> UploadToStorageAsync(IFormFile file, string folder)
-        {
-            // TODO: Implementasi upload ke storage
-            // Contoh menggunakan Azure Blob:
-            //   var blobName = $"{folder}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-            //   var blobClient = _blobContainerClient.GetBlobClient(blobName);
-            //   await blobClient.UploadAsync(file.OpenReadStream(), overwrite: true);
-            //   return blobClient.Uri.ToString();
-
-            // Sementara simpan lokal (dev only):
-            var fileName = $"{System.Guid.NewGuid()}{System.IO.Path.GetExtension(file.FileName)}";
-            var uploadPath = System.IO.Path.Combine("uploads", folder);
-            System.IO.Directory.CreateDirectory(uploadPath);
-            var fullPath = System.IO.Path.Combine(uploadPath, fileName);
-            using var stream = System.IO.File.Create(fullPath);
-            file.CopyTo(stream);
-            return Task.FromResult($"/{uploadPath}/{fileName}");
-        }
     }
 }
