@@ -1258,4 +1258,15 @@ namespace ApiService.Application.DTOs
 
         public List<BbmSubmissionKendaraanOptionDto> KendaraanAktif { get; set; } = new();
     }
+
+    public class FileUploadResponse
+    {
+        public string Id { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string GeneratedName { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        /// <summary>Full URL file: {BaseUrl}{folder}/{generatedName}</summary>
+        public string Url { get; set; } = string.Empty;
+    }
 }
