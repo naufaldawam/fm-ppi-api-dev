@@ -1269,4 +1269,69 @@ namespace ApiService.Application.DTOs
         /// <summary>Full URL file: {BaseUrl}{folder}/{generatedName}</summary>
         public string Url { get; set; } = string.Empty;
     }
+
+    // TAGIHAN KWH (Data Master > Tagihan KWh, khusus Tagihan P8)
+    public class CreateTagihanKwhRequest
+    {
+        public string PeriodeId { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public decimal JumlahBiaya { get; set; }
+        public decimal JumlahKwh { get; set; }
+    }
+
+    public class UpdateTagihanKwhRequest
+    {
+        public string PeriodeId { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public decimal JumlahBiaya { get; set; }
+        public decimal JumlahKwh { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class TagihanKwhDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public decimal JumlahBiaya { get; set; }
+        public decimal JumlahKwh { get; set; }
+        public string Kategori { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class TagihanKwhFilterRequest
+    {
+        public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class TagihanKwhSummaryRequest
+    {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
+        /// <summary>Opsional - kalau diisi, summary difilter berdasarkan status aktif.</summary>
+        public bool? IsActive { get; set; }
+    }
+
+    public class TagihanKwhSummaryDto
+    {
+        /// <summary>Filter periode yang dipakai untuk menghitung summary ini (null = semua periode).</summary>
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
+        /// <summary>Jumlah record Tagihan KWh yang match filter.</summary>
+        public int TotalMemberTagihan { get; set; }
+
+        /// <summary>Total keseluruhan JumlahBiaya dari semua record yang match filter.</summary>
+        public decimal GrandTotalBiaya { get; set; }
+
+        /// <summary>Total keseluruhan JumlahKwh dari semua record yang match filter.</summary>
+        public decimal GrandTotalKwh { get; set; }
+    }
 }

@@ -262,78 +262,98 @@ namespace ApiService.Application.Validators
     // ===================================
     // MEMBER PARKIR VALIDATORS
     // ===================================
-public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMemberParkirRequest>
+    public class CreateMemberParkirRequestValidator : AbstractValidator<CreateMemberParkirRequest>
+    {
+        public CreateMemberParkirRequestValidator()
         {
-            public CreateMemberParkirRequestValidator()
-            {
-                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-                RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
-            }
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
         }
+    }
 
-        public class UpdateMemberParkirRequestValidator : AbstractValidator<UpdateMemberParkirRequest>
+    public class UpdateMemberParkirRequestValidator : AbstractValidator<UpdateMemberParkirRequest>
+    {
+        public UpdateMemberParkirRequestValidator()
         {
-            public UpdateMemberParkirRequestValidator()
-            {
-                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
-                RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
-            }
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
         }
+    }
 
-        public class CreateOperasionalUpahRequestValidator : AbstractValidator<CreateOperasionalUpahRequest>
+    public class CreateOperasionalUpahRequestValidator : AbstractValidator<CreateOperasionalUpahRequest>
+    {
+        public CreateOperasionalUpahRequestValidator()
         {
-            public CreateOperasionalUpahRequestValidator()
-            {
-                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.TotalLembur).GreaterThanOrEqualTo(0).WithMessage("Total Lembur tidak boleh negatif");
-                RuleFor(x => x.TotalEMoneyMember).GreaterThanOrEqualTo(0).WithMessage("Total E-Money Member tidak boleh negatif");
-                RuleFor(x => x.DanaOps).GreaterThanOrEqualTo(0).WithMessage("Dana Ops tidak boleh negatif");
-                RuleFor(x => x.TotalParkir).GreaterThanOrEqualTo(0).WithMessage("Total Parkir tidak boleh negatif");
-                RuleFor(x => x.TotalSewaKendaraan).GreaterThanOrEqualTo(0).WithMessage("Total Sewa Kendaraan tidak boleh negatif");
-                RuleFor(x => x.TotalUpahDriver).GreaterThanOrEqualTo(0).WithMessage("Total Upah Driver tidak boleh negatif");
-            }
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TotalLembur).GreaterThanOrEqualTo(0).WithMessage("Total Lembur tidak boleh negatif");
+            RuleFor(x => x.TotalEMoneyMember).GreaterThanOrEqualTo(0).WithMessage("Total E-Money Member tidak boleh negatif");
+            RuleFor(x => x.DanaOps).GreaterThanOrEqualTo(0).WithMessage("Dana Ops tidak boleh negatif");
+            RuleFor(x => x.TotalParkir).GreaterThanOrEqualTo(0).WithMessage("Total Parkir tidak boleh negatif");
+            RuleFor(x => x.TotalSewaKendaraan).GreaterThanOrEqualTo(0).WithMessage("Total Sewa Kendaraan tidak boleh negatif");
+            RuleFor(x => x.TotalUpahDriver).GreaterThanOrEqualTo(0).WithMessage("Total Upah Driver tidak boleh negatif");
         }
+    }
 
-        public class UpdateOperasionalUpahRequestValidator : AbstractValidator<UpdateOperasionalUpahRequest>
+    public class UpdateOperasionalUpahRequestValidator : AbstractValidator<UpdateOperasionalUpahRequest>
+    {
+        public UpdateOperasionalUpahRequestValidator()
         {
-            public UpdateOperasionalUpahRequestValidator()
-            {
-                RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
-                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.TotalLembur).GreaterThanOrEqualTo(0).WithMessage("Total Lembur tidak boleh negatif");
-                RuleFor(x => x.TotalEMoneyMember).GreaterThanOrEqualTo(0).WithMessage("Total E-Money Member tidak boleh negatif");
-                RuleFor(x => x.DanaOps).GreaterThanOrEqualTo(0).WithMessage("Dana Ops tidak boleh negatif");
-                RuleFor(x => x.TotalParkir).GreaterThanOrEqualTo(0).WithMessage("Total Parkir tidak boleh negatif");
-                RuleFor(x => x.TotalSewaKendaraan).GreaterThanOrEqualTo(0).WithMessage("Total Sewa Kendaraan tidak boleh negatif");
-                RuleFor(x => x.TotalUpahDriver).GreaterThanOrEqualTo(0).WithMessage("Total Upah Driver tidak boleh negatif");
-            }
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TotalLembur).GreaterThanOrEqualTo(0).WithMessage("Total Lembur tidak boleh negatif");
+            RuleFor(x => x.TotalEMoneyMember).GreaterThanOrEqualTo(0).WithMessage("Total E-Money Member tidak boleh negatif");
+            RuleFor(x => x.DanaOps).GreaterThanOrEqualTo(0).WithMessage("Dana Ops tidak boleh negatif");
+            RuleFor(x => x.TotalParkir).GreaterThanOrEqualTo(0).WithMessage("Total Parkir tidak boleh negatif");
+            RuleFor(x => x.TotalSewaKendaraan).GreaterThanOrEqualTo(0).WithMessage("Total Sewa Kendaraan tidak boleh negatif");
+            RuleFor(x => x.TotalUpahDriver).GreaterThanOrEqualTo(0).WithMessage("Total Upah Driver tidak boleh negatif");
         }
+    }
 
-        public class CreateBbmSubmissionRequestValidator : AbstractValidator<CreateBbmSubmissionRequest>
+    public class CreateBbmSubmissionRequestValidator : AbstractValidator<CreateBbmSubmissionRequest>
+    {
+        public CreateBbmSubmissionRequestValidator()
         {
-            public CreateBbmSubmissionRequestValidator()
-            {
-                RuleFor(x => x.DriverId).NotEmpty().WithMessage("Driver harus dipilih");
-                RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
-                RuleFor(x => x.TanggalPenggunaan).NotEmpty().WithMessage("Tanggal penggunaan wajib diisi");
-                RuleFor(x => x.KendaraanId).NotEmpty().WithMessage("Nomor plat kendaraan harus dipilih");
-                RuleFor(x => x.JumlahPenggunaanBbm).GreaterThan(0).WithMessage("Jumlah penggunaan BBM harus lebih dari 0");
-                RuleFor(x => x.NilaiOdometer).GreaterThanOrEqualTo(0).WithMessage("Nilai odometer tidak boleh negatif");
-                RuleFor(x => x.NilaiNota).GreaterThan(0).WithMessage("Nilai nota harus lebih dari 0");
-                RuleFor(x => x.CatatanTambahan).MaximumLength(500).When(x => x.CatatanTambahan != null);
-            }
+            RuleFor(x => x.DriverId).NotEmpty().WithMessage("Driver harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TanggalPenggunaan).NotEmpty().WithMessage("Tanggal penggunaan wajib diisi");
+            RuleFor(x => x.KendaraanId).NotEmpty().WithMessage("Nomor plat kendaraan harus dipilih");
+            RuleFor(x => x.JumlahPenggunaanBbm).GreaterThan(0).WithMessage("Jumlah penggunaan BBM harus lebih dari 0");
+            RuleFor(x => x.NilaiOdometer).GreaterThanOrEqualTo(0).WithMessage("Nilai odometer tidak boleh negatif");
+            RuleFor(x => x.NilaiNota).GreaterThan(0).WithMessage("Nilai nota harus lebih dari 0");
+            RuleFor(x => x.CatatanTambahan).MaximumLength(500).When(x => x.CatatanTambahan != null);
         }
+    }
 
-        public class RejectBbmSubmissionRequestValidator : AbstractValidator<RejectBbmSubmissionRequest>
+    public class RejectBbmSubmissionRequestValidator : AbstractValidator<RejectBbmSubmissionRequest>
+    {
+        public RejectBbmSubmissionRequestValidator()
         {
-            public RejectBbmSubmissionRequestValidator()
-            {
-                RuleFor(x => x.Reason).NotEmpty().WithMessage("Alasan penolakan wajib diisi").MaximumLength(500);
-            }
+            RuleFor(x => x.Reason).NotEmpty().WithMessage("Alasan penolakan wajib diisi").MaximumLength(500);
         }
+    }
+
+    public class CreateTagihanKwhRequestValidator : AbstractValidator<CreateTagihanKwhRequest>
+    {
+        public CreateTagihanKwhRequestValidator()
+        {
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
+            RuleFor(x => x.JumlahKwh).GreaterThan(0).WithMessage("Jumlah KWH harus lebih dari 0");
+        }
+    }
+
+    public class UpdateTagihanKwhRequestValidator : AbstractValidator<UpdateTagihanKwhRequest>
+    {
+        public UpdateTagihanKwhRequestValidator()
+        {
+            RuleFor(x => x.TanggalPenagihan).NotEmpty().WithMessage("Tanggal penagihan wajib diisi");
+            RuleFor(x => x.JumlahBiaya).GreaterThan(0).WithMessage("Jumlah biaya harus lebih dari 0");
+            RuleFor(x => x.JumlahKwh).GreaterThan(0).WithMessage("Jumlah KWH harus lebih dari 0");
+        }
+    }
 }
