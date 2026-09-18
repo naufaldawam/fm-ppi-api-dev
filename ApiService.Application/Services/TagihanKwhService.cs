@@ -343,17 +343,6 @@ namespace ApiService.Application.Services
                         continue;
                     }
 
-                    if (existingPeriodeIds.Contains(periode.Id))
-                    {
-                        response.Errors.Add(new ImportRowError
-                        {
-                            RowNumber = row.RowNumber,
-                            Column = "Periode",
-                            Message = $"Tagihan KWh untuk periode '{row.PeriodeName}' sudah terdaftar (kategori '{kategori}')."
-                        });
-                        continue;
-                    }
-
                     contextRows.Add(new TagihanKwhImportContext
                     {
                         Row = row,
