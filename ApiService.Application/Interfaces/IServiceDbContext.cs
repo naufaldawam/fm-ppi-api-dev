@@ -25,6 +25,7 @@ namespace ApiService.Application.Interfaces
         DbSet<MasterJabatan> Jabatans { get; set; }
         DbSet<Pekerja> Pekerjas { get; set; }
         DbSet<MasterTipe> Tipes { get; set; }
+        DbSet<MasterJenisBbm> JenisBbms { get; set; }
         DbSet<MasterBahanBakar> BahanBakars { get; set; }
         DbSet<MasterKepemilikan> Kepemilikans { get; set; }
         DbSet<MasterVendor> Vendors { get; set; }

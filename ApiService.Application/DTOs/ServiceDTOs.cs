@@ -315,6 +315,37 @@ namespace ApiService.Application.DTOs
     }
 
     // ===================================
+    // JENIS BBM (Master Data > Jenis BBM)
+    // ===================================
+    public class CreateJenisBbmRequest
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class UpdateJenisBbmRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class JenisBbmDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class JenisBbmFilterRequest
+    {
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    // ===================================
     // BAHAN BAKAR (Master Data)
     // ===================================
     public class CreateBahanBakarRequest

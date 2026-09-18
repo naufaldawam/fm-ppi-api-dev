@@ -25,6 +25,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MasterBahanBakar> BahanBakars { get; set; }
         public DbSet<MasterKepemilikan> Kepemilikans { get; set; }
         public DbSet<MasterTipe> Tipes { get; set; }
+        public DbSet<MasterJenisBbm> JenisBbms { get; set; }
         public DbSet<MasterVendor> Vendors { get; set; }
         public DbSet<Kendaraan> Kendaraans { get; set; }
         public DbSet<RfId> RfIds { get; set; }
@@ -100,6 +101,16 @@ namespace ApiService.Infrastructure.Persistence
             modelBuilder.Entity<MasterTipe>(entity =>
             {
                 entity.ToTable("MasterTipes");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+            });
+
+            modelBuilder.Entity<MasterJenisBbm>(entity =>
+            {
+                // Nama tabel sesuai request: MasterJenisBbm (aja)
+                entity.ToTable("MasterJenisBbm");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.Name).IsUnique();
                 entity.HasIndex(e => e.IsDeleted);
