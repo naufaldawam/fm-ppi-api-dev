@@ -1334,4 +1334,39 @@ namespace ApiService.Application.DTOs
         /// <summary>Total keseluruhan JumlahKwh dari semua record yang match filter.</summary>
         public decimal GrandTotalKwh { get; set; }
     }
+
+        // ===================================
+    // TAGIHAN KWH - BULK UPLOAD (khusus P8)
+    // Kolom template: Periode | TanggalPenagihan | JumlahBiaya | JumlahKwh
+    // Lookup Periode via NamaPeriode. Kategori diisi server-side dari endpoint.
+    // ===================================
+    public class TagihanKwhImportRow
+    {
+        public int RowNumber { get; set; }
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TanggalPenagihanText { get; set; } = string.Empty;
+        public DateTime? TanggalPenagihan { get; set; }
+        public string JumlahBiayaText { get; set; } = string.Empty;
+        public decimal? JumlahBiaya { get; set; }
+        public string JumlahKwhText { get; set; } = string.Empty;
+        public decimal? JumlahKwh { get; set; }
+    }
+
+    public class TagihanKwhImportPreviewDto
+    {
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public decimal JumlahBiaya { get; set; }
+        public decimal JumlahKwh { get; set; }
+    }
+
+    public class TagihanKwhImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedTagihanKwh { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<TagihanKwhImportPreviewDto> Preview { get; set; } = new();
+    }
 }
