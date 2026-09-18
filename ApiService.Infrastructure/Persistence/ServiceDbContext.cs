@@ -33,6 +33,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MemberParkir> MemberParkirs { get; set; }
         public DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
         public DbSet<BbmSubmission> BbmSubmissions { get; set; }
+        public DbSet<TagihanKwh> TagihanKwhs { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -352,6 +353,26 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Kendaraan)
                     .WithMany()
                     .HasForeignKey(e => e.KendaraanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // TAGIHAN KWH (Data Master > Tagihan)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<TagihanKwh>(entity =>
+            {
+                entity.ToTable("TagihanKwhs");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.JumlahBiaya).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.JumlahKwh).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Kategori).HasMaxLength(20).HasDefaultValue(TagihanKwh.KategoriP8);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
