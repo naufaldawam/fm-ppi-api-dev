@@ -176,15 +176,15 @@ namespace ApiService.Application.Services
             if (filter.IsActive.HasValue)
                 query = query.Where(t => t.IsActive == filter.IsActive.Value);
 
-            var totalMemberTagihan = await query.CountAsync();
-            var grandTotalBiaya = totalMemberTagihan == 0 ? 0m : await query.SumAsync(t => t.JumlahBiaya);
-            var grandTotalKwh = totalMemberTagihan == 0 ? 0m : await query.SumAsync(t => t.JumlahKwh);
+            var totalTagihan = await query.CountAsync();
+            var grandTotalBiaya = totalTagihan == 0 ? 0m : await query.SumAsync(t => t.JumlahBiaya);
+            var grandTotalKwh = totalTagihan == 0 ? 0m : await query.SumAsync(t => t.JumlahKwh);
 
             return ApiResponse<TagihanKwhSummaryDto>.SuccessResponse(new TagihanKwhSummaryDto
             {
                 PeriodeId = filter.PeriodeId,
                 NamaPeriode = namaPeriode,
-                TotalMemberTagihan = totalMemberTagihan,
+                TotalTagihan = totalTagihan,
                 GrandTotalBiaya = grandTotalBiaya,
                 GrandTotalKwh = grandTotalKwh
             });

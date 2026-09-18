@@ -1326,7 +1326,7 @@ namespace ApiService.Application.DTOs
         public string? NamaPeriode { get; set; }
 
         /// <summary>Jumlah record Tagihan KWh yang match filter.</summary>
-        public int TotalMemberTagihan { get; set; }
+        public int TotalTagihan { get; set; }
 
         /// <summary>Total keseluruhan JumlahBiaya dari semua record yang match filter.</summary>
         public decimal GrandTotalBiaya { get; set; }
