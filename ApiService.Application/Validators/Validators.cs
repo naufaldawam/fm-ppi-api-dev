@@ -66,6 +66,25 @@ namespace ApiService.Application.Validators
     }
 
     // ===================================
+    // JENIS BBM VALIDATORS
+    // ===================================
+    public class CreateJenisBbmRequestValidator : AbstractValidator<CreateJenisBbmRequest>
+    {
+        public CreateJenisBbmRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateJenisBbmRequestValidator : AbstractValidator<UpdateJenisBbmRequest>
+    {
+        public UpdateJenisBbmRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
     // BAHAN BAKAR VALIDATORS
     // ===================================
     public class CreateBahanBakarRequestValidator : AbstractValidator<CreateBahanBakarRequest>
