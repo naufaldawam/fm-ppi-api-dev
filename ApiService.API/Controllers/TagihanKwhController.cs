@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using ApiService.Application.DTOs;
 using ApiService.Application.Interfaces;
 using ApiService.Application.Services;
@@ -117,6 +118,45 @@ namespace ApiService.API.Controllers
         public async Task<IActionResult> GetSummary([FromQuery] TagihanKwhSummaryRequest filter)
         {
             var result = await _tagihanKwhService.GetSummaryAsync(filter, TagihanKwh.KategoriP8);
+            return StatusCode(result.StatusCode, result);
+        }
+
+        [HttpGet("p8/download-template")]
+        [RequirePermission("tagihan-kwh.read")]
+        public async Task<IActionResult> DownloadTemplate()
+        {
+            _logger.LogInformation("User {UserId} download template Tagihan KWh.", _currentUser.UserId);
+
+            var result = await _tagihanKwhService.GetImportTemplateAsync();
+            if (!result.Success || result.Data == null)
+                return StatusCode(result.StatusCode, result);
+
+            var file = result.Data;
+            return File(file.FileStream, file.ContentType, file.FileName);
+        }
+
+        [HttpPost("p8/import-excel")]
+        [RequirePermission("tagihan-kwh.create")]
+        [Consumes("multipart/form-data")]
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "File tidak boleh kosong." });
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension != ".xlsx")
+                return BadRequest(new { success = false, message = "Hanya mendukung file dengan format .xlsx." });
+
+            var userId = _currentUser.UserId!;
+
+            await using var stream = file.OpenReadStream();
+            var result = await _tagihanKwhService.ImportFromExcelAsync(stream, TagihanKwh.KategoriP8, userId);
+
+            _logger.LogInformation(
+                "Import Tagihan KWh (P8) | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
+                file.FileName, file.Length, userId, result.Success);
+
             return StatusCode(result.StatusCode, result);
         }
     }
