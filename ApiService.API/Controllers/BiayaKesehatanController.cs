@@ -8,27 +8,27 @@ using ApiService.API.Filters;
 
 namespace ApiService.API.Controllers
 {
-    /// <summary>SIM Card - datatable + form (Pekerja, Periode, Biaya SIM Card).</summary>
+    /// <summary>Biaya Kesehatan - datatable + form (Pekerja, Bulan Tahun, Periode, TotalBiaya).</summary>
     [ApiController]
-    [Route("sim-card")]
+    [Route("biaya-kesehatan")]
     [Authorize]
     [Produces("application/json")]
-    public class SimCardController : ControllerBase
+    public class BiayaKesehatanController : ControllerBase
     {
-        private readonly ISimCardService _simCardService;
+        private readonly IBiayaKesehatanService _biayaKesehatanService;
         private readonly IPekerjaService _pekerjaService;
         private readonly IPeriodeService _periodeService;
         private readonly ICurrentUser _currentUser;
-        private readonly ILogger<SimCardController> _logger;
+        private readonly ILogger<BiayaKesehatanController> _logger;
 
-        public SimCardController(
-            ISimCardService simCardService,
+        public BiayaKesehatanController(
+            IBiayaKesehatanService biayaKesehatanService,
             IPekerjaService pekerjaService,
             IPeriodeService periodeService,
             ICurrentUser currentUser,
-            ILogger<SimCardController> logger)
+            ILogger<BiayaKesehatanController> logger)
         {
-            _simCardService = simCardService;
+            _biayaKesehatanService = biayaKesehatanService;
             _pekerjaService = pekerjaService;
             _periodeService = periodeService;
             _currentUser = currentUser;
@@ -36,87 +36,90 @@ namespace ApiService.API.Controllers
         }
 
         [HttpGet]
-        [RequirePermission("sim-card.read")]
-        public async Task<IActionResult> GetAll([FromQuery] SimCardFilterRequest filter)
+        [RequirePermission("biaya-kesehatan.read")]
+        public async Task<IActionResult> GetAll([FromQuery] BiayaKesehatanFilterRequest filter)
         {
-            var result = await _simCardService.GetAllAsync(filter);
+            var result = await _biayaKesehatanService.GetAllAsync(filter);
             return Ok(result);
         }
 
-        /// <summary>Dropdown Pekerja: GET /sim-card/pekerja-lookup?search=xxx</summary>
+        /// <summary>
+        /// Dropdown Pekerja: setelah pilih, FE terisi Rfid + No.Pekerja + Jabatan.
+        /// GET /biaya-kesehatan/pekerja-lookup?search=xxx
+        /// </summary>
         [HttpGet("pekerja-lookup")]
-        [RequirePermission("sim-card.read")]
+        [RequirePermission("biaya-kesehatan.read")]
         public async Task<IActionResult> GetPekerjaLookup([FromQuery] string? search, [FromQuery] bool activeOnly = true)
         {
             var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
-        /// <summary>Dropdown Periode: GET /sim-card/periode-lookup?search=xxx</summary>
+        /// <summary>Dropdown Periode: GET /biaya-kesehatan/periode-lookup?search=xxx</summary>
         [HttpGet("periode-lookup")]
-        [RequirePermission("sim-card.read")]
+        [RequirePermission("biaya-kesehatan.read")]
         public async Task<IActionResult> GetPeriodeLookup([FromQuery] string? search, [FromQuery] bool activeOnly = false)
         {
             var result = await _periodeService.GetLookupAsync(search, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
-        /// <summary>Summary box: total SIM card pekerja + total biaya.</summary>
+        /// <summary>Summary box: total record + grand total biaya, filter by periode.</summary>
         [HttpGet("summary")]
-        [RequirePermission("sim-card.read")]
-        public async Task<IActionResult> GetSummary([FromQuery] SimCardSummaryRequest filter)
+        [RequirePermission("biaya-kesehatan.read")]
+        public async Task<IActionResult> GetSummary([FromQuery] BiayaKesehatanSummaryRequest filter)
         {
-            var result = await _simCardService.GetSummaryAsync(filter);
+            var result = await _biayaKesehatanService.GetSummaryAsync(filter);
             return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("{id}")]
-        [RequirePermission("sim-card.read")]
+        [RequirePermission("biaya-kesehatan.read")]
         public async Task<IActionResult> GetById(string id)
         {
-            var result = await _simCardService.GetByIdAsync(id);
+            var result = await _biayaKesehatanService.GetByIdAsync(id);
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
 
         [HttpPost]
-        [RequirePermission("sim-card.create")]
-        public async Task<IActionResult> Create([FromBody] CreateSimCardRequest request)
+        [RequirePermission("biaya-kesehatan.create")]
+        public async Task<IActionResult> Create([FromBody] CreateBiayaKesehatanRequest request)
         {
             var userId = _currentUser.UserId!;
-            var result = await _simCardService.CreateAsync(request, userId);
+            var result = await _biayaKesehatanService.CreateAsync(request, userId);
             if (!result.Success) return BadRequest(result);
 
-            _logger.LogInformation("Sim card created by user {UserId}", userId);
+            _logger.LogInformation("Biaya kesehatan created by user {UserId}", userId);
             return Ok(result);
         }
 
         [HttpPut("{id}")]
-        [RequirePermission("sim-card.update")]
-        public async Task<IActionResult> Update(string id, [FromBody] UpdateSimCardRequest request)
+        [RequirePermission("biaya-kesehatan.update")]
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateBiayaKesehatanRequest request)
         {
-            var result = await _simCardService.UpdateAsync(id, request, _currentUser.UserId!);
+            var result = await _biayaKesehatanService.UpdateAsync(id, request, _currentUser.UserId!);
             if (!result.Success) return NotFound(result);
             return Ok(result);
         }
 
         [HttpDelete("{id}")]
-        [RequirePermission("sim-card.delete")]
+        [RequirePermission("biaya-kesehatan.delete")]
         public async Task<IActionResult> Delete(string id)
         {
-            var result = await _simCardService.DeleteAsync(id, _currentUser.UserId!);
+            var result = await _biayaKesehatanService.DeleteAsync(id, _currentUser.UserId!);
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
 
-        /// <summary>Download template: GET /sim-card/download-template</summary>
+        /// <summary>Download template: GET /biaya-kesehatan/download-template</summary>
         [HttpGet("download-template")]
-        [RequirePermission("sim-card.read")]
+        [RequirePermission("biaya-kesehatan.read")]
         public async Task<IActionResult> DownloadTemplate()
         {
-            _logger.LogInformation("User {UserId} download template SIM Card.", _currentUser.UserId);
+            _logger.LogInformation("User {UserId} download template Biaya Kesehatan.", _currentUser.UserId);
 
-            var result = await _simCardService.GetImportTemplateAsync();
+            var result = await _biayaKesehatanService.GetImportTemplateAsync();
             if (!result.Success || result.Data == null)
                 return StatusCode(result.StatusCode, result);
 
@@ -125,11 +128,11 @@ namespace ApiService.API.Controllers
         }
 
         /// <summary>
-        /// Bulk upload SIM Card (.xlsx). Kolom: NoPekerja | BiayaSimCard
-        /// POST /sim-card/import-excel
+        /// Bulk upload Biaya Kesehatan (.xlsx). Kolom: NoPekerja | BulanTahun | Periode | TotalBiaya
+        /// POST /biaya-kesehatan/import-excel
         /// </summary>
         [HttpPost("import-excel")]
-        [RequirePermission("sim-card.create")]
+        [RequirePermission("biaya-kesehatan.create")]
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(20 * 1024 * 1024)]
         public async Task<IActionResult> ImportExcel(IFormFile file)
@@ -144,10 +147,10 @@ namespace ApiService.API.Controllers
             var userId = _currentUser.UserId!;
 
             await using var stream = file.OpenReadStream();
-            var result = await _simCardService.ImportFromExcelAsync(stream, userId);
+            var result = await _biayaKesehatanService.ImportFromExcelAsync(stream, userId);
 
             _logger.LogInformation(
-                "Import SIM Card | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
+                "Import Biaya Kesehatan | File: {FileName} | Size: {FileSize} | UserId: {UserId} | Success: {Success}",
                 file.FileName, file.Length, userId, result.Success);
 
             return StatusCode(result.StatusCode, result);

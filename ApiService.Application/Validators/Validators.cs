@@ -401,24 +401,48 @@ namespace ApiService.Application.Validators
         }
     }
 
-    // ===================================
-    // SIM CARD VALIDATORS
-    // ===================================
     public class CreateSimCardRequestValidator : AbstractValidator<CreateSimCardRequest>
     {
         public CreateSimCardRequestValidator()
         {
             RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
             RuleFor(x => x.BiayaSimCard).GreaterThan(0).WithMessage("Biaya SIM card harus lebih dari 0");
         }
     }
 
-    public class UpdateSimCardRequestValidator : AbstractValidator<UpdateSimCardRequest>
+public class UpdateSimCardRequestValidator : AbstractValidator<UpdateSimCardRequest>
     {
         public UpdateSimCardRequestValidator()
         {
             RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
             RuleFor(x => x.BiayaSimCard).GreaterThan(0).WithMessage("Biaya SIM card harus lebih dari 0");
+        }
+    }
+
+    // ===================================
+    // BIAYA KESEHATAN VALIDATORS
+    // ===================================
+    public class CreateBiayaKesehatanRequestValidator : AbstractValidator<CreateBiayaKesehatanRequest>
+    {
+        public CreateBiayaKesehatanRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.BulanTahun).NotEmpty().WithMessage("Bulan tahun wajib diisi");
+            RuleFor(x => x.TotalBiaya).GreaterThan(0).WithMessage("Total biaya harus lebih dari 0");
+        }
+    }
+
+    public class UpdateBiayaKesehatanRequestValidator : AbstractValidator<UpdateBiayaKesehatanRequest>
+    {
+        public UpdateBiayaKesehatanRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.BulanTahun).NotEmpty().WithMessage("Bulan tahun wajib diisi");
+            RuleFor(x => x.TotalBiaya).GreaterThan(0).WithMessage("Total biaya harus lebih dari 0");
         }
     }
 }

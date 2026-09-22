@@ -1508,17 +1508,19 @@ namespace ApiService.Application.DTOs
 
     // ===================================
     // SIM CARD (Data Master > SIM Card)
-    // Datatable: NamaPekerja, NoPekerja, NopekHome, NopekHost, Jabatan, BiayaSimCard
+    // Datatable: NamaPekerja, NoPekerja, NopekHome, NopekHost, Jabatan, Periode, BiayaSimCard
     // ===================================
     public class CreateSimCardRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
         public decimal BiayaSimCard { get; set; }
     }
 
     public class UpdateSimCardRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
         public decimal BiayaSimCard { get; set; }
         public bool IsActive { get; set; } = true;
     }
@@ -1533,6 +1535,8 @@ namespace ApiService.Application.DTOs
         public string NopekHost { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
         public decimal BiayaSimCard { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -1543,6 +1547,7 @@ namespace ApiService.Application.DTOs
     {
         /// <summary>Cari berdasarkan NoPekerja, NamaPekerja, NopekHome, NopekHost.</summary>
         public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
         public bool? IsActive { get; set; }
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -1550,11 +1555,16 @@ namespace ApiService.Application.DTOs
 
     public class SimCardSummaryRequest
     {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
         public bool? IsActive { get; set; }
     }
 
     public class SimCardSummaryDto
     {
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
         /// <summary>Total SIM card pekerja = jumlah record yang match filter.</summary>
         public int TotalSimCardPekerja { get; set; }
 
@@ -1564,12 +1574,13 @@ namespace ApiService.Application.DTOs
 
     // ===================================
     // SIM CARD - BULK UPLOAD
-    // Kolom template: NoPekerja | BiayaSimCard
+    // Kolom template: NoPekerja | Periode | BiayaSimCard
     // ===================================
     public class SimCardImportRow
     {
         public int RowNumber { get; set; }
         public string NoPekerja { get; set; } = string.Empty;
+        public string PeriodeName { get; set; } = string.Empty;
         public string BiayaSimCardText { get; set; } = string.Empty;
         public decimal? BiayaSimCard { get; set; }
     }
@@ -1579,10 +1590,11 @@ namespace ApiService.Application.DTOs
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
         public decimal BiayaSimCard { get; set; }
     }
 
-    public class SimCardImportResponse
+public class SimCardImportResponse
     {
         public int TotalRows { get; set; }
         public int SuccessCount { get; set; }
@@ -1590,5 +1602,110 @@ namespace ApiService.Application.DTOs
         public int InsertedSimCard { get; set; }
         public List<ImportRowError> Errors { get; set; } = new();
         public List<SimCardImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ===================================
+    // BIAYA KESEHATAN
+    // Datatable: NamaPekerja, NoPekerja, Rfid, Jabatan, BulanTahun, Periode, TotalBiaya
+    // ===================================
+    public class CreateBiayaKesehatanRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiaya { get; set; }
+    }
+
+    public class UpdateBiayaKesehatanRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiaya { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class BiayaKesehatanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        /// <summary>Kode RF.ID pertama dari Pekerja (read-only, auto-fill form + detail).</summary>
+        public string RfId { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public decimal TotalBiaya { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class BiayaKesehatanFilterRequest
+    {
+        /// <summary>Cari berdasarkan NoPekerja, NamaPekerja, Rfid.</summary>
+        public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class BiayaKesehatanSummaryRequest
+    {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+    }
+
+    public class BiayaKesehatanSummaryDto
+    {
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
+        /// <summary>Total record biaya kesehatan yang match filter.</summary>
+        public int TotalBiayaKesehatanPekerja { get; set; }
+
+        /// <summary>Total sum(TotalBiaya) yang match filter.</summary>
+        public decimal GrandTotalBiaya { get; set; }
+    }
+
+    // ===================================
+    // BIAYA KESEHATAN - BULK UPLOAD
+    // Kolom template: NoPekerja | BulanTahun | Periode | TotalBiaya
+    // ===================================
+    public class BiayaKesehatanImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string BulanTahunText { get; set; } = string.Empty;
+        public DateTime? BulanTahun { get; set; }
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TotalBiayaText { get; set; } = string.Empty;
+        public decimal? TotalBiaya { get; set; }
+    }
+
+    public class BiayaKesehatanImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public string RfId { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string NamaPeriode { get; set; } = string.Empty;
+        public decimal TotalBiaya { get; set; }
+    }
+
+    public class BiayaKesehatanImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedBiayaKesehatan { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<BiayaKesehatanImportPreviewDto> Preview { get; set; } = new();
     }
 }
