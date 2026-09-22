@@ -302,14 +302,14 @@ namespace ApiService.Application.Services
                     ValidateRequiredField(response.Errors, row, "Periode", parsedRow.PeriodeName);
                     ValidateRequiredField(response.Errors, row, "TotalBiayaDinas", parsedRow.TotalBiayaDinasText);
 
-                    parsedRow.BulanTahun = ParseImportDate(parsedRow.BulanTahunText);
+                    parsedRow.BulanTahun = ParseBulanTahun(parsedRow.BulanTahunText);
                     if (parsedRow.BulanTahun == null)
                     {
                         response.Errors.Add(new ImportRowError
                         {
                             RowNumber = row,
                             Column = "BulanTahun",
-                            Message = "BulanTahun tidak valid. Format: yyyy-MM-dd."
+                            Message = "BulanTahun tidak valid. Format: NamaBulan, TAHUN (contoh: Januari, 2024)."
                         });
                     }
 
@@ -506,7 +506,7 @@ namespace ApiService.Application.Services
 
             // Baris contoh (italic abu-abu - harus dihapus/ditimpa user)
             sheet.Cell(2, 1).Value = "19280027";
-            sheet.Cell(2, 2).Value = "2026-09-01";
+            sheet.Cell(2, 2).Value = "Januari, 2026";
             sheet.Cell(2, 3).Value = "Januari 2026";
             sheet.Cell(2, 4).Value = "1500000";
             sheet.Range(2, 1, 2, headers.Length).Style.Font.Italic = true;
@@ -627,38 +627,71 @@ namespace ApiService.Application.Services
             }
         }
 
-        /// <summary>Parse tanggal ISO "yyyy-MM-dd" (tanpa ParseExact/Split/Substring).</summary>
-        private static DateTime? ParseImportDate(string text)
+        private static readonly string[] IndonesianMonths =
+{
+            "januari", "februari", "maret", "april", "mei", "juni",
+            "juli", "agustus", "september", "oktober", "november", "desember"
+        };
+
+        /// <summary>
+        /// Parse "NamaBulan, TAHUN" (contoh "Januari, 2024") -> DateTime first day bulan.
+        /// Mendukung format "Januari 2024", "Januari,2024", "JANUARI 2024" (case-insensitive).
+        /// Tidak pakai Split/IndexOf/Parse - manual seperti helper lainnya.
+        /// </summary>
+        private static DateTime? ParseBulanTahun(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
                 return null;
 
             var cleaned = text.Trim();
-            if (cleaned.Length < 10)
-                return null;
 
-            for (var i = 0; i < 10; i++)
+            // Ekstrak nama bulan (huruf saja, lowercase) dan ambil 4 digit terakhir = tahun
+            var monthLetters = string.Empty;
+            var count = 0;
+            var d1 = 0;
+            var d2 = 0;
+            var d3 = 0;
+            var d4 = 0;
+
+            for (var i = 0; i < cleaned.Length; i++)
             {
                 var c = cleaned[i];
-                if (i == 4 || i == 7)
+
+                if (c >= '0' && c <= '9')
                 {
-                    if (c != '-' && c != '/' && c != '.')
-                        return null;
+                    d1 = d2;
+                    d2 = d3;
+                    d3 = d4;
+                    d4 = DigitValue(c);
+                    if (count < 4)
+                        count++;
                 }
-                else if (c < '0' || c > '9')
+                else if (char.IsLetter(c))
                 {
-                    return null;
+                    monthLetters += char.ToLower(c);
+                }
+                // koma / spasi / simbol lain -> diabaikan
+            }
+
+            if (count < 4 || monthLetters.Length == 0)
+                return null;
+
+            var year = d1 * 1000 + d2 * 100 + d3 * 10 + d4;
+
+            var month = 0;
+            for (var i = 0; i < IndonesianMonths.Length; i++)
+            {
+                if (monthLetters == IndonesianMonths[i])
+                {
+                    month = i + 1;
+                    break;
                 }
             }
 
-            var year = DigitValue(cleaned[0]) * 1000 + DigitValue(cleaned[1]) * 100 + DigitValue(cleaned[2]) * 10 + DigitValue(cleaned[3]);
-            var month = DigitValue(cleaned[5]) * 10 + DigitValue(cleaned[6]);
-            var day = DigitValue(cleaned[8]) * 10 + DigitValue(cleaned[9]);
-
-            if (year < 1900 || year > 9999 || month < 1 || month > 12 || day < 1 || day > 31)
+            if (month < 1 || year < 1900 || year > 9999)
                 return null;
 
-            return new DateTime(year, month, day);
+            return new DateTime(year, month, 1);
         }
 
         /// <summary>
