@@ -53,6 +53,9 @@ namespace ApiService.Application.Services
                     (x.Pekerja != null && x.Pekerja.NopekHost.Contains(s)));
             }
 
+            if (!string.IsNullOrEmpty(filter.PeriodeId))
+                query = query.Where(x => x.PeriodeId == filter.PeriodeId);
+
             if (filter.IsActive.HasValue)
                 query = query.Where(x => x.IsActive == filter.IsActive.Value);
 
