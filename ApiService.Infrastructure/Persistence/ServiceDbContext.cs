@@ -37,6 +37,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<TagihanKwh> TagihanKwhs { get; set; }
         public DbSet<PerjalananDinas> PerjalananDinas { get; set; }
         public DbSet<SimCard> SimCards { get; set; }
+        public DbSet<BiayaKesehatan> BiayaKesehatans { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -419,6 +420,7 @@ namespace ApiService.Infrastructure.Persistence
                 entity.ToTable("SimCards");
                 entity.HasKey(e => e.Id);
                 entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.PeriodeId);
                 entity.HasIndex(e => e.IsDeleted);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.BiayaSimCard).HasColumnType("decimal(18,2)");
@@ -426,6 +428,61 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Pekerja)
                     .WithMany()
                     .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // BIAYA KESEHATAN - khusus periode + bulan/tahun
+            // ------------------------------------------------------------
+            modelBuilder.Entity<BiayaKesehatan>(entity =>
+            {
+                entity.ToTable("BiayaKesehatans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.BulanTahun);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.TotalBiaya).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // BIAYA KESEHATAN
+            // ------------------------------------------------------------
+            modelBuilder.Entity<BiayaKesehatan>(entity =>
+            {
+                entity.ToTable("BiayaKesehatans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.BulanTahun);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.TotalBiaya).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

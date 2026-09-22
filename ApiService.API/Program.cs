@@ -137,6 +137,7 @@ builder.Services.AddScoped<IOperasionalUpahService, OperasionalUpahService>();
 builder.Services.AddScoped<ITagihanKwhService, TagihanKwhService>();
 builder.Services.AddScoped<IPerjalananDinasService, PerjalananDinasService>();
 builder.Services.AddScoped<ISimCardService, SimCardService>();
+builder.Services.AddScoped<IBiayaKesehatanService, BiayaKesehatanService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
 // ===================================
