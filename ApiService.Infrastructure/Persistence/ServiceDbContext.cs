@@ -35,6 +35,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
         public DbSet<BbmSubmission> BbmSubmissions { get; set; }
         public DbSet<TagihanKwh> TagihanKwhs { get; set; }
+        public DbSet<PerjalananDinas> PerjalananDinas { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -380,6 +381,31 @@ namespace ApiService.Infrastructure.Persistence
                 entity.Property(e => e.JumlahBiaya).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.JumlahKwh).HasColumnType("decimal(18,2)");
                 entity.Property(e => e.Kategori).HasMaxLength(20).HasDefaultValue(TagihanKwh.KategoriP8);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // PERJALANAN DINAS (Data Master > Perjalanan Dinas)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<PerjalananDinas>(entity =>
+            {
+                entity.ToTable("PerjalananDinas");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.BulanTahun);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.TotalBiayaDinas).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Periode)
                     .WithMany()

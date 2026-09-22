@@ -102,3 +102,4 @@ Thumbs.db
 # docs
 .docs/
 .agents/
+.kilo/

@@ -37,6 +37,7 @@ namespace ApiService.Application.Interfaces
         DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
         DbSet<BbmSubmission> BbmSubmissions { get; set; }
         DbSet<TagihanKwh> TagihanKwhs { get; set; }
+        DbSet<PerjalananDinas> PerjalananDinas { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

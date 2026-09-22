@@ -135,6 +135,7 @@ builder.Services.AddScoped<IMemberParkirService, MemberParkirService>();
 builder.Services.AddScoped<IBbmSubmissionService, BbmSubmissionService>();
 builder.Services.AddScoped<IOperasionalUpahService, OperasionalUpahService>();
 builder.Services.AddScoped<ITagihanKwhService, TagihanKwhService>();
+builder.Services.AddScoped<IPerjalananDinasService, PerjalananDinasService>();
 builder.Services.AddScoped<IFileService, FileService>();
 
 // ===================================
