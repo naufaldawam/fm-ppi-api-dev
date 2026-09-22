@@ -400,4 +400,25 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.TotalBiayaDinas).GreaterThan(0).WithMessage("Total biaya dinas harus lebih dari 0");
         }
     }
+
+    // ===================================
+    // SIM CARD VALIDATORS
+    // ===================================
+    public class CreateSimCardRequestValidator : AbstractValidator<CreateSimCardRequest>
+    {
+        public CreateSimCardRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.BiayaSimCard).GreaterThan(0).WithMessage("Biaya SIM card harus lebih dari 0");
+        }
+    }
+
+    public class UpdateSimCardRequestValidator : AbstractValidator<UpdateSimCardRequest>
+    {
+        public UpdateSimCardRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.BiayaSimCard).GreaterThan(0).WithMessage("Biaya SIM card harus lebih dari 0");
+        }
+    }
 }

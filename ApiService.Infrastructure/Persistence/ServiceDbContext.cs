@@ -36,6 +36,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<BbmSubmission> BbmSubmissions { get; set; }
         public DbSet<TagihanKwh> TagihanKwhs { get; set; }
         public DbSet<PerjalananDinas> PerjalananDinas { get; set; }
+        public DbSet<SimCard> SimCards { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -410,6 +411,21 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Periode)
                     .WithMany()
                     .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<SimCard>(entity =>
+            {
+                entity.ToTable("SimCards");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.PekerjaId);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.BiayaSimCard).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(e => e.Pekerja)
+                    .WithMany()
+                    .HasForeignKey(e => e.PekerjaId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

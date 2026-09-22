@@ -1366,7 +1366,7 @@ namespace ApiService.Application.DTOs
         public decimal GrandTotalKwh { get; set; }
     }
 
-        // ===================================
+    // ===================================
     // TAGIHAN KWH - BULK UPLOAD (khusus P8)
     // Kolom template: Periode | TanggalPenagihan | JumlahBiaya | JumlahKwh
     // Lookup Periode via NamaPeriode. Kategori diisi server-side dari endpoint.
@@ -1504,5 +1504,91 @@ namespace ApiService.Application.DTOs
         public int InsertedPerjalananDinas { get; set; }
         public List<ImportRowError> Errors { get; set; } = new();
         public List<PerjalananDinasImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ===================================
+    // SIM CARD (Data Master > SIM Card)
+    // Datatable: NamaPekerja, NoPekerja, NopekHome, NopekHost, Jabatan, BiayaSimCard
+    // ===================================
+    public class CreateSimCardRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public decimal BiayaSimCard { get; set; }
+    }
+
+    public class UpdateSimCardRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public decimal BiayaSimCard { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class SimCardDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public decimal BiayaSimCard { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class SimCardFilterRequest
+    {
+        /// <summary>Cari berdasarkan NoPekerja, NamaPekerja, NopekHome, NopekHost.</summary>
+        public string? Search { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class SimCardSummaryRequest
+    {
+        public bool? IsActive { get; set; }
+    }
+
+    public class SimCardSummaryDto
+    {
+        /// <summary>Total SIM card pekerja = jumlah record yang match filter.</summary>
+        public int TotalSimCardPekerja { get; set; }
+
+        /// <summary>Total biaya SIM card = sum(BiayaSimCard) yang match filter.</summary>
+        public decimal TotalBiayaSimCard { get; set; }
+    }
+
+    // ===================================
+    // SIM CARD - BULK UPLOAD
+    // Kolom template: NoPekerja | BiayaSimCard
+    // ===================================
+    public class SimCardImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string BiayaSimCardText { get; set; } = string.Empty;
+        public decimal? BiayaSimCard { get; set; }
+    }
+
+    public class SimCardImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public decimal BiayaSimCard { get; set; }
+    }
+
+    public class SimCardImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedSimCard { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<SimCardImportPreviewDto> Preview { get; set; } = new();
     }
 }
