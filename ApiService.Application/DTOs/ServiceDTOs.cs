@@ -1400,4 +1400,109 @@ namespace ApiService.Application.DTOs
         public List<ImportRowError> Errors { get; set; } = new();
         public List<TagihanKwhImportPreviewDto> Preview { get; set; } = new();
     }
+
+    // ===================================
+    // PERJALANAN DINAS (Data Master > Perjalanan Dinas)
+    // Datatable: NamaPekerja, NoPekerja, NopekHome, NopekHost, Jabatan, TotalBiayaDinas
+    // ===================================
+    public class CreatePerjalananDinasRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+    }
+
+    public class UpdatePerjalananDinasRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class PerjalananDinasDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string PekerjaId { get; set; } = string.Empty;
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string NopekHome { get; set; } = string.Empty;
+        public string NopekHost { get; set; } = string.Empty;
+        public string JabatanId { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class PerjalananDinasFilterRequest
+    {
+        /// <summary>Cari berdasarkan NoPekerja, NamaPekerja, NopekHome, NopekHost.</summary>
+        public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class PerjalananDinasSummaryRequest
+    {
+        /// <summary>Opsional - kalau diisi, summary dihitung hanya untuk periode ini.</summary>
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+    }
+
+    public class PerjalananDinasSummaryDto
+    {
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+
+        /// <summary>Total dinas pekerja = jumlah record yang match filter.</summary>
+        public int TotalDinasPekerja { get; set; }
+
+        /// <summary>Total perjalanan dinas = sum(TotalBiayaDinas) yang match filter.</summary>
+        public decimal TotalPerjalananDinas { get; set; }
+    }
+
+    // ===================================
+    // PERJALANAN DINAS - BULK UPLOAD
+    // Kolom template: NoPekerja | BulanTahun | Periode | TotalBiayaDinas
+    // Lookup Pekerja via NoPekerja; Periode via NamaPeriode
+    // ===================================
+    public class PerjalananDinasImportRow
+    {
+        public int RowNumber { get; set; }
+        public string NoPekerja { get; set; } = string.Empty;
+        public string BulanTahunText { get; set; } = string.Empty;
+        public DateTime? BulanTahun { get; set; }
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TotalBiayaDinasText { get; set; } = string.Empty;
+        public decimal? TotalBiayaDinas { get; set; }
+    }
+
+    public class PerjalananDinasImportPreviewDto
+    {
+        public string NoPekerja { get; set; } = string.Empty;
+        public string NamaPekerja { get; set; } = string.Empty;
+        public string JabatanName { get; set; } = string.Empty;
+        public DateTime BulanTahun { get; set; }
+        public string NamaPeriode { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+    }
+
+    public class PerjalananDinasImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedPerjalananDinas { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<PerjalananDinasImportPreviewDto> Preview { get; set; } = new();
+    }
 }

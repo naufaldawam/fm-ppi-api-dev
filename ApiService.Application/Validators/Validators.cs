@@ -375,4 +375,29 @@ namespace ApiService.Application.Validators
             RuleFor(x => x.JumlahKwh).GreaterThan(0).WithMessage("Jumlah KWH harus lebih dari 0");
         }
     }
+
+    // ===================================
+    // PERJALANAN DINAS VALIDATORS
+    // ===================================
+    public class CreatePerjalananDinasRequestValidator : AbstractValidator<CreatePerjalananDinasRequest>
+    {
+        public CreatePerjalananDinasRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.BulanTahun).NotEmpty().WithMessage("Bulan tahun wajib diisi");
+            RuleFor(x => x.TotalBiayaDinas).GreaterThan(0).WithMessage("Total biaya dinas harus lebih dari 0");
+        }
+    }
+
+    public class UpdatePerjalananDinasRequestValidator : AbstractValidator<UpdatePerjalananDinasRequest>
+    {
+        public UpdatePerjalananDinasRequestValidator()
+        {
+            RuleFor(x => x.PekerjaId).NotEmpty().WithMessage("Pekerja harus dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.BulanTahun).NotEmpty().WithMessage("Bulan tahun wajib diisi");
+            RuleFor(x => x.TotalBiayaDinas).GreaterThan(0).WithMessage("Total biaya dinas harus lebih dari 0");
+        }
+    }
 }
