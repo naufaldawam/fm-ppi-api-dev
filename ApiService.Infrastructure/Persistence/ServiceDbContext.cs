@@ -27,6 +27,8 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<MasterTipe> Tipes { get; set; }
         public DbSet<MasterJenisBbm> JenisBbms { get; set; }
         public DbSet<MasterKategoriKecelakaan> KategoriKecelakaans { get; set; }
+        public DbSet<DataKecelakaan> DataKecelakaans { get; set; }
+        public DbSet<EvidenceKecelakaan> EvidenceKecelakaans { get; set; }
         public DbSet<MasterVendor> Vendors { get; set; }
         public DbSet<Kendaraan> Kendaraans { get; set; }
         public DbSet<RfId> RfIds { get; set; }
@@ -493,6 +495,73 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasOne(e => e.Periode)
                     .WithMany()
                     .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // DATA KECELAKAAN (laporan kecelakaan utama)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<DataKecelakaan>(entity =>
+            {
+                entity.ToTable("DataKecelakaans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.KategoriId);
+                entity.HasIndex(e => e.PeriodeId);
+                entity.HasIndex(e => e.DriverId);
+                entity.HasIndex(e => e.PejabatId);
+                entity.HasIndex(e => e.TanggalKejadian);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Nomor).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.Status).HasDefaultValue(DataKecelakaan.StatusDraft);
+
+                // Rich text => nvarchar(max)
+                entity.Property(e => e.AkarPermasalahan).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.TindakanSegara).HasColumnType("nvarchar(max)");
+                entity.Property(e => e.TindakanPerbaikan).HasColumnType("nvarchar(max)");
+
+                // WaktuKejadian: string "HH:mm"
+                entity.Property(e => e.WaktuKejadian).HasMaxLength(5);
+
+                entity.HasOne(e => e.Kategori)
+                    .WithMany()
+                    .HasForeignKey(e => e.KategoriId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Periode)
+                    .WithMany()
+                    .HasForeignKey(e => e.PeriodeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Driver)
+                    .WithMany()
+                    .HasForeignKey(e => e.DriverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Pejabat)
+                    .WithMany()
+                    .HasForeignKey(e => e.PejabatId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ------------------------------------------------------------
+            // EVIDENCE KECELAKAAN (foto bukti, 1:N ke DataKecelakaan)
+            // ------------------------------------------------------------
+            modelBuilder.Entity<EvidenceKecelakaan>(entity =>
+            {
+                entity.ToTable("EvidenceKecelakaans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.DataKecelakaanId);
+                entity.HasIndex(e => e.GeneratedName).IsUnique();
+                entity.HasIndex(e => e.SortOrder);
+                entity.HasIndex(e => e.IsDeleted);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+                entity.Property(e => e.FileSize).HasColumnType("bigint");
+
+                entity.HasOne(e => e.DataKecelakaan)
+                    .WithMany()
+                    .HasForeignKey(e => e.DataKecelakaanId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

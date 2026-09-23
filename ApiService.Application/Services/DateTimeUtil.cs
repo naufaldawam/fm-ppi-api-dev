@@ -91,6 +91,46 @@ namespace ApiService.Application.Services
         public static string ToUtcIsoMonthYear(DateTime value) =>
             $"{value:yyyy-MM-dd}T00:00:00.000Z";
 
+        /// <summary>
+        /// Parse tanggal dari ISO string (contoh "2026-09-23", "2026-09-23T14:30:00.000Z")
+        /// -> naive DateTime jam 00:00 (date only). Tidak memakai ParseExact.
+        /// </summary>
+        public static DateTime? ParseDateOnly(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
+
+            var cleaned = text.Trim();
+            if (cleaned.Length < 10)
+                return null;
+
+            for (var i = 0; i < 10; i++)
+            {
+                var c = cleaned[i];
+                if (i == 4 || i == 7)
+                {
+                    if (c != '-' && c != '/' && c != '.')
+                        return null;
+                }
+                else if (c < '0' || c > '9')
+                {
+                    return null;
+                }
+            }
+
+            var year = Digit(cleaned[0]) * 1000 + Digit(cleaned[1]) * 100 + Digit(cleaned[2]) * 10 + Digit(cleaned[3]);
+            var month = Digit(cleaned[5]) * 10 + Digit(cleaned[6]);
+            var day = Digit(cleaned[8]) * 10 + Digit(cleaned[9]);
+
+            if (year < 1900 || year > 9999 || month < 1 || month > 12 || day < 1)
+                return null;
+
+            if (day > MaxDayOf(month, year))
+                return null;
+
+            return new DateTime(year, month, day);
+        }
+
         private static int MaxDayOf(int month, int year)
         {
             var max = DaysInMonth[month - 1];

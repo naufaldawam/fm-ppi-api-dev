@@ -4,6 +4,7 @@ using ApiService.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiService.Infrastructure.Migrations
 {
     [DbContext(typeof(ServiceDbContext))]
-    partial class ServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923081444_AddDataKecelakaanAndEvidenceV2")]
+    partial class AddDataKecelakaanAndEvidenceV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -310,10 +313,6 @@ namespace ApiService.Infrastructure.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<string>("PeriodeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -349,8 +348,6 @@ namespace ApiService.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("PejabatId");
-
-                    b.HasIndex("PeriodeId");
 
                     b.HasIndex("Status");
 
@@ -1580,19 +1577,11 @@ namespace ApiService.Infrastructure.Migrations
                         .HasForeignKey("PejabatId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("ApiService.Domain.Entities.Periode", "Periode")
-                        .WithMany()
-                        .HasForeignKey("PeriodeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Driver");
 
                     b.Navigation("Kategori");
 
                     b.Navigation("Pejabat");
-
-                    b.Navigation("Periode");
                 });
 
             modelBuilder.Entity("ApiService.Domain.Entities.Driver", b =>
