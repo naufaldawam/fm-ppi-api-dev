@@ -85,6 +85,25 @@ namespace ApiService.Application.Validators
     }
 
     // ===================================
+    // KATEGORI KECELAKAAN VALIDATORS
+    // ===================================
+    public class CreateKategoriKecelakaanRequestValidator : AbstractValidator<CreateKategoriKecelakaanRequest>
+    {
+        public CreateKategoriKecelakaanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    public class UpdateKategoriKecelakaanRequestValidator : AbstractValidator<UpdateKategoriKecelakaanRequest>
+    {
+        public UpdateKategoriKecelakaanRequestValidator()
+        {
+            RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
+        }
+    }
+
+    // ===================================
     // BAHAN BAKAR VALIDATORS
     // ===================================
     public class CreateBahanBakarRequestValidator : AbstractValidator<CreateBahanBakarRequest>
