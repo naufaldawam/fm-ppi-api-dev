@@ -1808,6 +1808,14 @@ public class SimCardImportResponse
         public string Url { get; set; } = string.Empty;
     }
 
+    /// <summary>File foto bukti untuk streaming ke FE (GET /evidence/{id}/image).</summary>
+    public class EvidenceFileDto
+    {
+        public string FileName { get; set; } = string.Empty;
+        public string ContentType { get; set; } = string.Empty;
+        public byte[] Bytes { get; set; } = [];
+    }
+
     public class DataKecelakaanDto
     {
         public string Id { get; set; } = string.Empty;
