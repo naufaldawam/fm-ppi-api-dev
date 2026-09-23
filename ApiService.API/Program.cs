@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using QuestPDF.Infrastructure;
+
 using Serilog;
 
 using FluentValidation;
@@ -38,6 +40,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// ===================================
+// PDF (QuestPDF) - Community license
+// ===================================
+QuestPDF.Settings.License = LicenseType.Community;
 
 // ===================================
 // DATABASE
