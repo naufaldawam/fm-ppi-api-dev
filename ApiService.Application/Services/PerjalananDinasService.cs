@@ -102,11 +102,17 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<PerjalananDinasDto>.ErrorResponse("ERR-PERJALANANDINAS-003", "Periode tidak ditemukan");
 
+            var bulanTahun = DateTimeUtil.ParseBulanTahunUtc(request.BulanTahun);
+            if (bulanTahun == null)
+                return ApiResponse<PerjalananDinasDto>.ErrorResponse(
+                    "ERR-PERJALANANDINAS-005",
+                    "BulanTahun tidak valid. Format ISO UTC, contoh: 2026-01-31T17:00:00.000Z.");
+
             var duplicate = await _context.PerjalananDinas.AnyAsync(p =>
                 !p.IsDeleted &&
                 p.PekerjaId == request.PekerjaId &&
                 p.PeriodeId == request.PeriodeId &&
-                p.BulanTahun.Date == request.BulanTahun.Date);
+                p.BulanTahun.Date == ((DateTime)bulanTahun).Date);
 
             if (duplicate)
                 return ApiResponse<PerjalananDinasDto>.ErrorResponse(
@@ -116,7 +122,7 @@ namespace ApiService.Application.Services
             var dinas = new PerjalananDinas
             {
                 PekerjaId = request.PekerjaId,
-                BulanTahun = request.BulanTahun,
+                BulanTahun = (DateTime)bulanTahun,
                 PeriodeId = request.PeriodeId,
                 TotalBiayaDinas = request.TotalBiayaDinas,
                 IsActive = true,
@@ -151,12 +157,18 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<PerjalananDinasDto>.ErrorResponse("ERR-PERJALANANDINAS-003", "Periode tidak ditemukan");
 
+            var bulanTahun = DateTimeUtil.ParseBulanTahunUtc(request.BulanTahun);
+            if (bulanTahun == null)
+                return ApiResponse<PerjalananDinasDto>.ErrorResponse(
+                    "ERR-PERJALANANDINAS-005",
+                    "BulanTahun tidak valid. Format ISO UTC, contoh: 2026-01-31T17:00:00.000Z.");
+
             var duplicate = await _context.PerjalananDinas.AnyAsync(p =>
                 !p.IsDeleted &&
                 p.Id != id &&
                 p.PekerjaId == request.PekerjaId &&
                 p.PeriodeId == request.PeriodeId &&
-                p.BulanTahun.Date == request.BulanTahun.Date);
+                p.BulanTahun.Date == ((DateTime)bulanTahun).Date);
 
             if (duplicate)
                 return ApiResponse<PerjalananDinasDto>.ErrorResponse(
@@ -164,7 +176,7 @@ namespace ApiService.Application.Services
                     "Perjalanan dinas pekerja ini untuk bulan-periode ini sudah terdaftar");
 
             dinas.PekerjaId = request.PekerjaId;
-            dinas.BulanTahun = request.BulanTahun;
+            dinas.BulanTahun = (DateTime)bulanTahun;
             dinas.PeriodeId = request.PeriodeId;
             dinas.TotalBiayaDinas = request.TotalBiayaDinas;
             dinas.IsActive = request.IsActive;
@@ -464,7 +476,7 @@ namespace ApiService.Application.Services
                             NoPekerja = ctx.Row.NoPekerja.Trim(),
                             NamaPekerja = ctx.Pekerja.NamaPekerja,
                             JabatanName = ctx.Pekerja.Jabatan?.Name ?? string.Empty,
-                            BulanTahun = dinas.BulanTahun,
+                            BulanTahun = DateTimeUtil.ToUtcIsoMonthYear(dinas.BulanTahun),
                             NamaPeriode = ctx.Periode.NamaPeriode,
                             TotalBiayaDinas = dinas.TotalBiayaDinas
                         });
@@ -780,7 +792,7 @@ namespace ApiService.Application.Services
             NopekHost = p.Pekerja?.NopekHost ?? string.Empty,
             JabatanId = p.Pekerja?.JabatanId ?? string.Empty,
             JabatanName = p.Pekerja?.Jabatan?.Name ?? string.Empty,
-            BulanTahun = p.BulanTahun,
+            BulanTahun = DateTimeUtil.ToUtcIsoMonthYear(p.BulanTahun),
             PeriodeId = p.PeriodeId,
             NamaPeriode = p.Periode?.NamaPeriode ?? string.Empty,
             TotalBiayaDinas = p.TotalBiayaDinas,

@@ -1408,7 +1408,8 @@ namespace ApiService.Application.DTOs
     public class CreatePerjalananDinasRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public decimal TotalBiayaDinas { get; set; }
     }
@@ -1416,7 +1417,8 @@ namespace ApiService.Application.DTOs
     public class UpdatePerjalananDinasRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public decimal TotalBiayaDinas { get; set; }
         public bool IsActive { get; set; } = true;
@@ -1432,7 +1434,8 @@ namespace ApiService.Application.DTOs
         public string NopekHost { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public string NamaPeriode { get; set; } = string.Empty;
         public decimal TotalBiayaDinas { get; set; }
@@ -1491,7 +1494,8 @@ namespace ApiService.Application.DTOs
         public string NoPekerja { get; set; } = string.Empty;
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string NamaPeriode { get; set; } = string.Empty;
         public decimal TotalBiayaDinas { get; set; }
     }
@@ -1611,7 +1615,8 @@ public class SimCardImportResponse
     public class CreateBiayaKesehatanRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public decimal TotalBiaya { get; set; }
     }
@@ -1619,7 +1624,8 @@ public class SimCardImportResponse
     public class UpdateBiayaKesehatanRequest
     {
         public string PekerjaId { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public decimal TotalBiaya { get; set; }
         public bool IsActive { get; set; } = true;
@@ -1635,7 +1641,8 @@ public class SimCardImportResponse
         public string RfId { get; set; } = string.Empty;
         public string JabatanId { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string PeriodeId { get; set; } = string.Empty;
         public string NamaPeriode { get; set; } = string.Empty;
         public decimal TotalBiaya { get; set; }
@@ -1694,7 +1701,8 @@ public class SimCardImportResponse
         public string NamaPekerja { get; set; } = string.Empty;
         public string JabatanName { get; set; } = string.Empty;
         public string RfId { get; set; } = string.Empty;
-        public DateTime BulanTahun { get; set; }
+        /// <summary>ISO UTC string, contoh "2026-01-31T17:00:00.000Z" (Februari 2026 in WIB).</summary>
+        public string BulanTahun { get; set; } = string.Empty;
         public string NamaPeriode { get; set; } = string.Empty;
         public decimal TotalBiaya { get; set; }
     }
