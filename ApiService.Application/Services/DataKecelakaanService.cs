@@ -27,6 +27,8 @@ namespace ApiService.Application.Services
         Task<ApiResponse<EvidenceKecelakaanDto>> UploadEvidenceAsync(string dataKecelakaanId, IFormFile photo, string userId);
         /// <summary>Soft delete 1 foto bukti.</summary>
         Task<ApiResponse<bool>> DeleteEvidenceAsync(string evidenceId, string userId);
+        /// <summary>Ambil bytes foto bukti untuk streaming ke FE.</summary>
+        Task<ApiResponse<EvidenceFileDto>> GetEvidenceImageAsync(string evidenceId);
         Task<ApiResponse<DataKecelakaanSummaryDto>> GetSummaryAsync(DataKecelakaanSummaryRequest filter);
     }
 
@@ -429,6 +431,30 @@ namespace ApiService.Application.Services
             await _context.SaveChangesAsync();
 
             return ApiResponse<bool>.SuccessResponse(true, "Foto bukti deleted");
+        }
+
+        /// <summary>Stream foto bukti (byte[]) sehingga FE bisa load image via API.</summary>
+        public async Task<ApiResponse<EvidenceFileDto>> GetEvidenceImageAsync(string evidenceId)
+        {
+            var evidence = await _context.EvidenceKecelakaans
+                .FirstOrDefaultAsync(e => e.Id == evidenceId && !e.IsDeleted);
+
+            if (evidence == null)
+                return ApiResponse<EvidenceFileDto>.ErrorResponse(
+                    "ERR-EVIDENCEKECELAKAAN-001", "Foto bukti not found");
+
+            // Evidence.FilePath sudah "{UploadPath}/{ImageFolder}/{GeneratedName}"
+            if (!File.Exists(evidence.FilePath))
+                return ApiResponse<EvidenceFileDto>.NotFound("Foto bukti tidak ditemukan.");
+
+            var fileBytes = await File.ReadAllBytesAsync(evidence.FilePath);
+
+            return ApiResponse<EvidenceFileDto>.SuccessResponse(new EvidenceFileDto
+            {
+                FileName = evidence.FileName,
+                ContentType = string.IsNullOrEmpty(evidence.ContentType) ? "image/jpeg" : evidence.ContentType,
+                Bytes = fileBytes
+            });
         }
 
         // =========================================================

@@ -168,6 +168,22 @@ namespace ApiService.API.Controllers
         }
 
         /// <summary>
+        /// Stream foto bukti (byte[]) sehingga FE bisa load image via API.
+        /// GET /data-kecelakaan/evidence/{evidenceId}/image
+        /// </summary>
+        [HttpGet("evidence/{evidenceId}/image")]
+        [RequirePermission("evidence-kecelakaan.read")]
+        public async Task<IActionResult> GetEvidenceImage(string evidenceId)
+        {
+            var result = await _dataKecelakaanService.GetEvidenceImageAsync(evidenceId);
+            if (!result.Success || result.Data == null)
+                return StatusCode(result.StatusCode, result);
+
+            var file = result.Data;
+            return File(file.Bytes, file.ContentType, file.FileName);
+        }
+
+        /// <summary>
         /// Hapus 1 foto bukti (tombol hapus foto di form edit).
         /// DELETE /data-kecelakaan/evidence/{evidenceId}
         /// </summary>
