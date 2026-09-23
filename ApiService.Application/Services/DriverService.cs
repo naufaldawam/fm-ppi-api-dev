@@ -18,6 +18,8 @@ namespace ApiService.Application.Services
         Task<ApiResponse<DriverDto>> CreateAsync(CreateDriverRequest request, string userId);
         Task<ApiResponse<DriverDto>> UpdateAsync(string id, UpdateDriverRequest request, string userId);
         Task<ApiResponse<bool>> DeleteAsync(string id, string userId);
+        /// <summary>Dropdown driver: NoPekerja - NamaDriver.</summary>
+        Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
         Task<ApiResponse<DriverImportResponse>> ImportFromExcelAsync(Stream fileStream, string userId);
         Task<ApiResponse<FileResult>> GetImportTemplateAsync();
     }
@@ -37,6 +39,30 @@ namespace ApiService.Application.Services
                 .Include(d => d.Atasan)
                     .ThenInclude(a => a!.Jabatan)
                 .Where(d => !d.IsDeleted);
+
+        /// <summary>Lookup dropdown driver: "NoPekerja - NamaDriver".</summary>
+        public async Task<ApiResponse<List<MasterLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        {
+            var query = _context.Drivers.Where(d => !d.IsDeleted);
+
+            if (activeOnly)
+                query = query.Where(d => d.IsActive);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.Trim();
+                query = query.Where(d =>
+                    d.NoPekerja.Contains(s) ||
+                    d.NamaDriver.Contains(s));
+            }
+
+            var items = await query
+                .OrderBy(d => d.NamaDriver)
+                .Select(d => new MasterLookupDto { Id = d.Id, Name = d.NoPekerja + " - " + d.NamaDriver })
+                .ToListAsync();
+
+            return ApiResponse<List<MasterLookupDto>>.SuccessResponse(items);
+        }
 
         public async Task<ApiResponse<PagedResponse<DriverDto>>> GetAllAsync(DriverFilterRequest filter)
         {

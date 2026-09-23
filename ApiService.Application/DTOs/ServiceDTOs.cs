@@ -1747,4 +1747,124 @@ public class SimCardImportResponse
         public List<ImportRowError> Errors { get; set; } = new();
         public List<BiayaKesehatanImportPreviewDto> Preview { get; set; } = new();
     }
+
+    // ===================================
+    // DATA KECELAKAAN (laporan kecelakaan + foto bukti)
+    // Create/Update: multipart form = fields + files[] (nama form field foto)
+    // ===================================
+    public class CreateDataKecelakaanRequest
+    {
+        /// <summary>Nomor laporan - diinput oleh user.</summary>
+        public string Nomor { get; set; } = string.Empty;
+        public string Judul { get; set; } = string.Empty;
+        public string KategoriId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        /// <summary>ISO date of incident, contoh "2026-09-23" atau "2026-09-23T00:00:00.000Z".</summary>
+        public string TanggalKejadian { get; set; } = string.Empty;
+        /// <summary>Format "HH:mm".</summary>
+        public string WaktuKejadian { get; set; } = string.Empty;
+        public string Dampak { get; set; } = string.Empty;
+        public string? DriverId { get; set; }
+        public string? PejabatId { get; set; }
+        public string Alamat { get; set; } = string.Empty;
+        public string DetailKejadian { get; set; } = string.Empty;
+        public string PenyebabKejadian { get; set; } = string.Empty;
+        public string BagaimanaTerjadinya { get; set; } = string.Empty;
+        public string AkarPermasalahan { get; set; } = string.Empty;
+        public string TindakanSegara { get; set; } = string.Empty;
+        public string TindakanPerbaikan { get; set; } = string.Empty;
+    }
+
+    public class UpdateDataKecelakaanRequest
+    {
+        public string Nomor { get; set; } = string.Empty;
+        public string Judul { get; set; } = string.Empty;
+        public string KategoriId { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public string TanggalKejadian { get; set; } = string.Empty;
+        public string WaktuKejadian { get; set; } = string.Empty;
+        public string Dampak { get; set; } = string.Empty;
+        public string? DriverId { get; set; }
+        public string? PejabatId { get; set; }
+        public string Alamat { get; set; } = string.Empty;
+        public string DetailKejadian { get; set; } = string.Empty;
+        public string PenyebabKejadian { get; set; } = string.Empty;
+        public string BagaimanaTerjadinya { get; set; } = string.Empty;
+        public string AkarPermasalahan { get; set; } = string.Empty;
+        public string TindakanSegara { get; set; } = string.Empty;
+        public string TindakanPerbaikan { get; set; } = string.Empty;
+    }
+
+    public class EvidenceKecelakaanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string DataKecelakaanId { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public string GeneratedName { get; set; } = string.Empty;
+        public long FileSize { get; set; }
+        public string ContentType { get; set; } = string.Empty;
+        public int SortOrder { get; set; }
+        /// <summary>URL akses foto: {BaseUrl}/{ImageFolder}/{GeneratedName}</summary>
+        public string Url { get; set; } = string.Empty;
+    }
+
+    public class DataKecelakaanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Nomor { get; set; } = string.Empty;
+        public string Judul { get; set; } = string.Empty;
+        public string KategoriId { get; set; } = string.Empty;
+        public string KategoriName { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalKejadian { get; set; }
+        public string WaktuKejadian { get; set; } = string.Empty;
+        public string Dampak { get; set; } = string.Empty;
+        public string? DriverId { get; set; }
+        public string DriverInfo { get; set; } = string.Empty;
+        public string? PejabatId { get; set; }
+        public string PejabatInfo { get; set; } = string.Empty;
+        public string Alamat { get; set; } = string.Empty;
+        public string DetailKejadian { get; set; } = string.Empty;
+        public string PenyebabKejadian { get; set; } = string.Empty;
+        public string BagaimanaTerjadinya { get; set; } = string.Empty;
+        public string AkarPermasalahan { get; set; } = string.Empty;
+        public string TindakanSegara { get; set; } = string.Empty;
+        public string TindakanPerbaikan { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public List<EvidenceKecelakaanDto> Evidences { get; set; } = new();
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class DataKecelakaanFilterRequest
+    {
+        /// <summary>Cari berdasarkan Nomor, Judul, atau Alamat.</summary>
+        public string? Search { get; set; }
+        public string? KategoriId { get; set; }
+        public string? PeriodeId { get; set; }
+        public string? Status { get; set; }
+        public DateTime? TanggalFrom { get; set; }
+        public DateTime? TanggalTo { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class DataKecelakaanSummaryRequest
+    {
+        public string? KategoriId { get; set; }
+        public string? PeriodeId { get; set; }
+        public string? Status { get; set; }
+    }
+
+    public class DataKecelakaanSummaryDto
+    {
+        public string? PeriodeId { get; set; }
+        public string? NamaPeriode { get; set; }
+        public int TotalDataKecelakaan { get; set; }
+        public int TotalPublished { get; set; }
+        public int TotalDraft { get; set; }
+        public long TotalFotoBukti { get; set; }
+    }
 }

@@ -464,4 +464,111 @@ public class UpdateSimCardRequestValidator : AbstractValidator<UpdateSimCardRequ
             RuleFor(x => x.TotalBiaya).GreaterThan(0).WithMessage("Total biaya harus lebih dari 0");
         }
     }
+
+    // ===================================
+    // DATA KECELAKAAN VALIDATORS
+    // ===================================
+    public class CreateDataKecelakaanRequestValidator : AbstractValidator<CreateDataKecelakaanRequest>
+    {
+        public CreateDataKecelakaanRequestValidator()
+        {
+            RuleFor(x => x.Nomor).NotEmpty().MaximumLength(50).WithMessage("Nomor laporan wajib diisi");
+            RuleFor(x => x.Judul).NotEmpty().MaximumLength(500).WithMessage("Judul wajib diisi");
+            RuleFor(x => x.KategoriId).NotEmpty().WithMessage("Kategori wajib dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TanggalKejadian).NotEmpty().WithMessage("Tanggal kejadian wajib diisi");
+            RuleFor(x => x.WaktuKejadian)
+                .NotEmpty().WithMessage("Waktu kejadian wajib diisi")
+                .Must(IsValidTimeHHmm).WithMessage("Waktu kejadian format HH:mm");
+            RuleFor(x => x.Dampak).MaximumLength(500);
+            RuleFor(x => x.Alamat).MaximumLength(500);
+            RuleFor(x => x.DetailKejadian).NotEmpty().MaximumLength(4000).WithMessage("Detail kejadian wajib diisi");
+            RuleFor(x => x.PenyebabKejadian).MaximumLength(4000);
+            RuleFor(x => x.BagaimanaTerjadinya).MaximumLength(4000);
+        }
+
+        private static bool IsValidTimeHHmm(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            var cleaned = value.Trim();
+            if (cleaned.Length != 5)
+                return false;
+            if (cleaned[2] != ':')
+                return false;
+
+            var hour = Digit(cleaned[0]) * 10 + Digit(cleaned[1]);
+            var minute = Digit(cleaned[3]) * 10 + Digit(cleaned[4]);
+
+            return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+        }
+
+        private static int Digit(char c)
+        {
+            if (c < '0' || c > '9') return -1;
+            if (c == '0') return 0;
+            if (c == '1') return 1;
+            if (c == '2') return 2;
+            if (c == '3') return 3;
+            if (c == '4') return 4;
+            if (c == '5') return 5;
+            if (c == '6') return 6;
+            if (c == '7') return 7;
+            if (c == '8') return 8;
+            return 9;
+        }
+    }
+
+    public class UpdateDataKecelakaanRequestValidator : AbstractValidator<UpdateDataKecelakaanRequest>
+    {
+        public UpdateDataKecelakaanRequestValidator()
+        {
+            RuleFor(x => x.Nomor).NotEmpty().MaximumLength(50).WithMessage("Nomor laporan wajib diisi");
+            RuleFor(x => x.Judul).NotEmpty().MaximumLength(500).WithMessage("Judul wajib diisi");
+            RuleFor(x => x.KategoriId).NotEmpty().WithMessage("Kategori wajib dipilih");
+            RuleFor(x => x.PeriodeId).NotEmpty().WithMessage("Periode harus dipilih");
+            RuleFor(x => x.TanggalKejadian).NotEmpty().WithMessage("Tanggal kejadian wajib diisi");
+            RuleFor(x => x.WaktuKejadian)
+                .NotEmpty().WithMessage("Waktu kejadian wajib diisi")
+                .Must(IsValidTimeHHmm).WithMessage("Waktu kejadian format HH:mm");
+            RuleFor(x => x.Dampak).MaximumLength(500);
+            RuleFor(x => x.Alamat).MaximumLength(500);
+            RuleFor(x => x.DetailKejadian).NotEmpty().MaximumLength(4000).WithMessage("Detail kejadian wajib diisi");
+            RuleFor(x => x.PenyebabKejadian).MaximumLength(4000);
+            RuleFor(x => x.BagaimanaTerjadinya).MaximumLength(4000);
+        }
+
+        private static bool IsValidTimeHHmm(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            var cleaned = value.Trim();
+            if (cleaned.Length != 5)
+                return false;
+            if (cleaned[2] != ':')
+                return false;
+
+            var hour = Digit(cleaned[0]) * 10 + Digit(cleaned[1]);
+            var minute = Digit(cleaned[3]) * 10 + Digit(cleaned[4]);
+
+            return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+        }
+
+        private static int Digit(char c)
+        {
+            if (c < '0' || c > '9') return -1;
+            if (c == '0') return 0;
+            if (c == '1') return 1;
+            if (c == '2') return 2;
+            if (c == '3') return 3;
+            if (c == '4') return 4;
+            if (c == '5') return 5;
+            if (c == '6') return 6;
+            if (c == '7') return 7;
+            if (c == '8') return 8;
+            return 9;
+        }
+    }
 }
