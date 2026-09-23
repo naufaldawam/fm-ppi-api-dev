@@ -100,11 +100,17 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<BiayaKesehatanDto>.ErrorResponse("ERR-BIAYAKESEHATAN-003", "Periode tidak ditemukan");
 
+            var bulanTahun = DateTimeUtil.ParseBulanTahunUtc(request.BulanTahun);
+            if (bulanTahun == null)
+                return ApiResponse<BiayaKesehatanDto>.ErrorResponse(
+                    "ERR-BIAYAKESEHATAN-005",
+                    "BulanTahun tidak valid. Format ISO UTC, contoh: 2026-01-31T17:00:00.000Z.");
+
             var duplicate = await _context.BiayaKesehatans.AnyAsync(b =>
                 !b.IsDeleted &&
                 b.PekerjaId == request.PekerjaId &&
                 b.PeriodeId == request.PeriodeId &&
-                b.BulanTahun.Date == request.BulanTahun.Date);
+                b.BulanTahun.Date == ((DateTime)bulanTahun).Date);
 
             if (duplicate)
                 return ApiResponse<BiayaKesehatanDto>.ErrorResponse(
@@ -114,7 +120,7 @@ namespace ApiService.Application.Services
             var biaya = new BiayaKesehatan
             {
                 PekerjaId = request.PekerjaId,
-                BulanTahun = request.BulanTahun,
+                BulanTahun = (DateTime)bulanTahun,
                 PeriodeId = request.PeriodeId,
                 TotalBiaya = request.TotalBiaya,
                 IsActive = true,
@@ -149,12 +155,18 @@ namespace ApiService.Application.Services
             if (!periodeOk)
                 return ApiResponse<BiayaKesehatanDto>.ErrorResponse("ERR-BIAYAKESEHATAN-003", "Periode tidak ditemukan");
 
+            var bulanTahun = DateTimeUtil.ParseBulanTahunUtc(request.BulanTahun);
+            if (bulanTahun == null)
+                return ApiResponse<BiayaKesehatanDto>.ErrorResponse(
+                    "ERR-BIAYAKESEHATAN-005",
+                    "BulanTahun tidak valid. Format ISO UTC, contoh: 2026-01-31T17:00:00.000Z.");
+
             var duplicate = await _context.BiayaKesehatans.AnyAsync(b =>
                 !b.IsDeleted &&
                 b.Id != id &&
                 b.PekerjaId == request.PekerjaId &&
                 b.PeriodeId == request.PeriodeId &&
-                b.BulanTahun.Date == request.BulanTahun.Date);
+                b.BulanTahun.Date == ((DateTime)bulanTahun).Date);
 
             if (duplicate)
                 return ApiResponse<BiayaKesehatanDto>.ErrorResponse(
@@ -162,7 +174,7 @@ namespace ApiService.Application.Services
                     "Biaya kesehatan pekerja ini untuk bulan-periode ini sudah terdaftar");
 
             biaya.PekerjaId = request.PekerjaId;
-            biaya.BulanTahun = request.BulanTahun;
+            biaya.BulanTahun = (DateTime)bulanTahun;
             biaya.PeriodeId = request.PeriodeId;
             biaya.TotalBiaya = request.TotalBiaya;
             biaya.IsActive = request.IsActive;
@@ -463,7 +475,7 @@ namespace ApiService.Application.Services
                             NamaPekerja = ctx.Pekerja.NamaPekerja,
                             JabatanName = ctx.Pekerja.Jabatan?.Name ?? string.Empty,
                             RfId = ctx.Pekerja.RfIds.Count > 0 ? ctx.Pekerja.RfIds[0] : string.Empty,
-                            BulanTahun = biaya.BulanTahun,
+                            BulanTahun = DateTimeUtil.ToUtcIsoMonthYear(biaya.BulanTahun),
                             NamaPeriode = ctx.Periode.NamaPeriode,
                             TotalBiaya = biaya.TotalBiaya
                         });
@@ -777,7 +789,7 @@ namespace ApiService.Application.Services
             RfId = b.Pekerja != null && b.Pekerja.RfIds.Count > 0 ? b.Pekerja.RfIds[0] : string.Empty,
             JabatanId = b.Pekerja?.JabatanId ?? string.Empty,
             JabatanName = b.Pekerja?.Jabatan?.Name ?? string.Empty,
-            BulanTahun = b.BulanTahun,
+            BulanTahun = DateTimeUtil.ToUtcIsoMonthYear(b.BulanTahun),
             PeriodeId = b.PeriodeId,
             NamaPeriode = b.Periode?.NamaPeriode ?? string.Empty,
             TotalBiaya = b.TotalBiaya,
