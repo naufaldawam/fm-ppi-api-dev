@@ -183,6 +183,18 @@ namespace ApiService.API.Controllers
             return File(file.Bytes, file.ContentType, file.FileName);
         }
 
+        /// <summary>Generate PDF laporan kecelakaan. GET /data-kecelakaan/{id}/generate-pdf</summary>
+        [HttpGet("{id}/generate-pdf")]
+        [RequirePermission("data-kecelakaan.read")]
+        public async Task<IActionResult> GeneratePdf(string id)
+        {
+            var result = await _dataKecelakaanService.GeneratePdfAsync(id);
+            if (!result.Success || result.Data == null)
+                return StatusCode(result.StatusCode, result);
+
+            return File(result.Data.FileStream, result.Data.ContentType, result.Data.FileName);
+        }
+
         /// <summary>
         /// Hapus 1 foto bukti (tombol hapus foto di form edit).
         /// DELETE /data-kecelakaan/evidence/{evidenceId}

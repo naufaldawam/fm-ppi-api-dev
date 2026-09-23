@@ -10,6 +10,8 @@ using ApiService.Domain.Entities;
 using ApiService.Application.Configurations;
 using System.IO;
 using System.Collections.Generic;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace ApiService.Application.Services
 {
@@ -29,6 +31,8 @@ namespace ApiService.Application.Services
         Task<ApiResponse<bool>> DeleteEvidenceAsync(string evidenceId, string userId);
         /// <summary>Ambil bytes foto bukti untuk streaming ke FE.</summary>
         Task<ApiResponse<EvidenceFileDto>> GetEvidenceImageAsync(string evidenceId);
+        /// <summary>Generate PDF laporan kecelakaan (QuestPDF).</summary>
+        Task<ApiResponse<FileResult>> GeneratePdfAsync(string id);
         Task<ApiResponse<DataKecelakaanSummaryDto>> GetSummaryAsync(DataKecelakaanSummaryRequest filter);
     }
 
@@ -455,6 +459,116 @@ namespace ApiService.Application.Services
                 ContentType = string.IsNullOrEmpty(evidence.ContentType) ? "image/jpeg" : evidence.ContentType,
                 Bytes = fileBytes
             });
+        }
+
+        /// <summary>Generate PDF formulir penyelidikan kecelakaan (QuestPDF, pattern MCU).</summary>
+        public async Task<ApiResponse<FileResult>> GeneratePdfAsync(string id)
+        {
+            var item = await _context.DataKecelakaans
+                .Include(d => d.Kategori)
+                .Include(d => d.Periode)
+                .Include(d => d.Driver)
+                    .ThenInclude(dr => dr!.Vendor)
+                .Include(d => d.Pejabat)
+                .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
+
+            if (item == null)
+                return ApiResponse<FileResult>.ErrorResponse(
+                    "ERR-DATAKECELAKAAN-001", "Data kecelakaan not found");
+
+            var evidences = await _context.EvidenceKecelakaans
+                .Where(e => !e.IsDeleted && e.DataKecelakaanId == id)
+                .OrderBy(e => e.SortOrder)
+                .ToListAsync();
+
+            var fotoBytes = new List<byte[]>();
+            foreach (var ev in evidences)
+            {
+                if (File.Exists(ev.FilePath))
+                {
+                    try
+                    {
+                        fotoBytes.Add(await File.ReadAllBytesAsync(ev.FilePath));
+                    }
+                    catch (Exception ex)
+                    {
+                        // foto corrupt/hilang -> skip, loop lanjut
+                    }
+                }
+            }
+
+            var data = new DataKecelakaanPdfDto
+            {
+                Nomor = item.Nomor,
+                Status = item.Status,
+                Judul = item.Judul,
+                Tanggal = $"{item.TanggalKejadian:dd-MM-yyyy}",
+                Waktu = item.WaktuKejadian,
+                Dampak = item.Dampak,
+                KategoriName = item.Kategori?.Name ?? string.Empty,
+                PeriodeName = item.Periode?.NamaPeriode ?? string.Empty,
+                Alamat = item.Alamat,
+                DriverInfo = item.Driver != null
+                    ? item.Driver.NoPekerja + " - " + item.Driver.NamaDriver
+                    : "-",
+                PejabatInfo = item.Pejabat != null
+                    ? item.Pejabat.NoPekerja + " - " + item.Pejabat.NamaPekerja
+                    : string.Empty,
+                DetailKejadian = item.DetailKejadian,
+                PenyebabKejadian = item.PenyebabKejadian,
+                BagaimanaTerjadinya = item.BagaimanaTerjadinya,
+                AkarPermasalahan = StripHtml(item.AkarPermasalahan),
+                TindakanSegara = StripHtml(item.TindakanSegara),
+                TindakanPerbaikan = StripHtml(item.TindakanPerbaikan),
+                FotoBukti = fotoBytes
+            };
+
+            var document = new DataKecelakaanPdfDocument(data);
+            var pdfBytes = document.GeneratePdf();
+
+            return ApiResponse<FileResult>.Ok(new FileResult
+            {
+                FileName = $"Kecelakaan_{item.Nomor}.pdf",
+                ContentType = "application/pdf",
+                FileStream = new MemoryStream(pdfBytes)
+            });
+        }
+
+        /// <summary>
+        /// Strip HTML tags dari konten rich-text editor (di-export ke PDF sebagai teks).
+        /// Manual iterasi - regex TIDAK tersedia di dialect ini.
+        /// </summary>
+        private static string StripHtml(string html)
+        {
+            if (string.IsNullOrWhiteSpace(html))
+                return "-";
+
+            var chars = new List<char>();
+            var inTag = false;
+
+            foreach (var c in html)
+            {
+                if (c == '<')
+                {
+                    inTag = true;
+                    continue;
+                }
+                if (c == '>')
+                {
+                    inTag = false;
+                    continue;
+                }
+                if (!inTag)
+                {
+                    if (c == '\n' || c == '\r')
+                        chars.Add(' ');
+                    else
+                        chars.Add(c);
+                }
+            }
+
+            var result = new string(chars.ToArray()).Trim();
+            return result.Length == 0 ? "-" : result;
         }
 
         // =========================================================
