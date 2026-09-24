@@ -60,15 +60,13 @@ namespace ApiService.Application.Services
                             {
                                 if (_d.LogoBytes != null && _d.LogoBytes.Length > 0)
                                 {
-                                    // Row dengan spacer kiri/kanan -> logo selalu di tengah.
-                                    // FitWidth: sesuaikan lebar 70, tinggi otomatis (logo ratio lebar).
-                                    c.Item().PaddingBottom(3).Row(r =>
-                                    {
-                                        r.RelativeItem();
-                                        r.ConstantItem(70).Height(35)
-                                            .Image(_d.LogoBytes, ImageScaling.FitWidth);
-                                        r.RelativeItem();
-                                    });
+                                    // Kembali ke layout lama (AlignCenter, bukan Row-spacer).
+                                    // FitWidth tetap dipakai supaya tidak crash (logo ratio lebar).
+                                    c.Item().PaddingBottom(3)
+                                        .AlignCenter()
+                                        .Width(70)
+                                        .Height(35)
+                                        .Image(_d.LogoBytes, ImageScaling.FitWidth);
                                 }
 
                                 c.Item()
