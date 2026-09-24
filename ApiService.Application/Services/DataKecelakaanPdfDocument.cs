@@ -29,6 +29,15 @@ namespace ApiService.Application.Services
 
                 page.Content().Column(col =>
                 {
+                    // ── Lampiran 2 - TKO No. <nomor> Rev.<revisi> (boven header tabel) ──
+                    col.Item().PaddingBottom(3).Text(t =>
+                    {
+                        t.Span("Lampiran 2 - TKO No. ").Bold();
+                        t.Span(_d.Nomor).Bold();
+                        t.Span("  Rev.").Bold();
+                        t.Span(_d.Revisi).Bold();
+                    });
+
                     // ── HEADER: satu tabel gabungan ─────────────────────────
                     col.Item().Table(headerTable =>
                     {
