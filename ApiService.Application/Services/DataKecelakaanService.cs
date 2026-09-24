@@ -501,7 +501,8 @@ namespace ApiService.Application.Services
             {
                 Nomor = item.Nomor,
                 Status = item.Status,
-                Judul = item.Judul,
+                Judul  = "AWAL KEJADIAN KECELAKAAN KERJA",   // banner text (red bar)
+                Judul2 = item.Judul,
                 Tanggal = $"{item.TanggalKejadian:dd-MM-yyyy}",
                 Waktu = item.WaktuKejadian,
                 Dampak = item.Dampak,
