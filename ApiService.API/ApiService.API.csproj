@@ -26,4 +26,8 @@
     <ProjectReference Include="..\ApiService.Infrastructure\ApiService.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Assets\logo ppi black.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
