@@ -515,6 +515,7 @@ namespace ApiService.Infrastructure.Persistence
                 entity.HasIndex(e => e.IsDeleted);
                 entity.Property(e => e.IsActive).HasDefaultValue(true);
                 entity.Property(e => e.Status).HasDefaultValue(DataKecelakaan.StatusDraft);
+                entity.Property(e => e.Revisi).HasDefaultValue(0);
 
                 // Rich text => nvarchar(max)
                 entity.Property(e => e.AkarPermasalahan).HasColumnType("nvarchar(max)");

@@ -45,6 +45,7 @@ builder.Host.UseSerilog();
 // PDF (QuestPDF) - Community license
 // ===================================
 QuestPDF.Settings.License = LicenseType.Community;
+QuestPDF.Settings.EnableDebugging = true;
 
 // ===================================
 // DATABASE

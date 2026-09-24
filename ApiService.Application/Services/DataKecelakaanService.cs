@@ -195,6 +195,7 @@ namespace ApiService.Application.Services
                 TindakanPerbaikan = request.TindakanPerbaikan.Trim(),
                 // Submit langsung: tanpa workflow draft/publish
                 Status = DataKecelakaan.StatusPublished,
+                Revisi = 0,
                 IsActive = true,
                 CreatedBy = userId
             };
@@ -243,6 +244,9 @@ namespace ApiService.Application.Services
 
             if (dataKecelakaan == null)
                 return ApiResponse<DataKecelakaanDto>.ErrorResponse("ERR-DATAKECELAKAAN-001", "Data kecelakaan not found");
+
+            // Setiap edit => revisi naik
+            dataKecelakaan.Revisi = dataKecelakaan.Revisi + 1;
 
             var kategoriOk = await _context.KategoriKecelakaans
                 .AnyAsync(k => k.Id == request.KategoriId && !k.IsDeleted);
@@ -497,10 +501,25 @@ namespace ApiService.Application.Services
                 }
             }
 
+            // Logo PPI dari Assets (folder API - dipublish bersama output)
+            var logoBytes = new byte[0];
+            try
+            {
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets", "logo ppi black.png");
+                if (File.Exists(logoPath))
+                    logoBytes = await File.ReadAllBytesAsync(logoPath);
+            }
+            catch (Exception ex)
+            {
+                // logo hilang -> PDF tetap jalan tanpa gambar
+            }
+
             var data = new DataKecelakaanPdfDto
             {
                 Nomor = item.Nomor,
+                Revisi = FormatRevisi(item.Revisi),
                 Status = item.Status,
+                LogoBytes = logoBytes,
                 Judul  = "AWAL KEJADIAN KECELAKAAN KERJA",   // banner text (red bar)
                 Judul2 = item.Judul,
                 Tanggal = $"{item.TanggalKejadian:dd-MM-yyyy}",
@@ -570,6 +589,14 @@ namespace ApiService.Application.Services
 
             var result = new string(chars.ToArray()).Trim();
             return result.Length == 0 ? "-" : result;
+        }
+
+        /// <summary>Revisi sebagai "00", "01", ... (display di header PDF).</summary>
+        private static string FormatRevisi(int revisi)
+        {
+            if (revisi < 10)
+                return $"0{revisi}";
+            return $"{revisi}";
         }
 
         // =========================================================
@@ -662,6 +689,7 @@ namespace ApiService.Application.Services
             TindakanSegara = d.TindakanSegara,
             TindakanPerbaikan = d.TindakanPerbaikan,
             Status = d.Status,
+            Revisi = d.Revisi,
             Evidences = evidences != null ? evidences.Select(MapEvidenceToDto).ToList() : new List<EvidenceKecelakaanDto>(),
             IsActive = d.IsActive,
             CreatedAt = d.CreatedAt,
