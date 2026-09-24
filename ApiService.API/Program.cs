@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using QuestPDF.Infrastructure;
+
 using Serilog;
 
 using FluentValidation;
@@ -38,6 +40,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// ===================================
+// PDF (QuestPDF) - Community license
+// ===================================
+QuestPDF.Settings.License = LicenseType.Community;
 
 // ===================================
 // DATABASE
@@ -122,6 +129,9 @@ builder.Services.Configure<StorageConfig>(
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IJabatanService, JabatanService>();
 builder.Services.AddScoped<ITipeService, TipeService>();
+builder.Services.AddScoped<IJenisBbmService, JenisBbmService>();
+builder.Services.AddScoped<IKategoriKecelakaanService, KategoriKecelakaanService>();
+builder.Services.AddScoped<IDataKecelakaanService, DataKecelakaanService>();
 builder.Services.AddScoped<IBahanBakarService, BahanBakarService>();
 builder.Services.AddScoped<IKepemilikanService, KepemilikanService>();
 builder.Services.AddScoped<IVendorService, VendorService>();
@@ -129,6 +139,15 @@ builder.Services.AddScoped<IPekerjaService, PekerjaService>();
 builder.Services.AddScoped<IKendaraanService, KendaraanService>();
 builder.Services.AddScoped<IRfIdService, RfIdService>();
 builder.Services.AddScoped<IDriverService, DriverService>();
+builder.Services.AddScoped<IPeriodeService, PeriodeService>();
+builder.Services.AddScoped<IMemberParkirService, MemberParkirService>();
+builder.Services.AddScoped<IBbmSubmissionService, BbmSubmissionService>();
+builder.Services.AddScoped<IOperasionalUpahService, OperasionalUpahService>();
+builder.Services.AddScoped<ITagihanKwhService, TagihanKwhService>();
+builder.Services.AddScoped<IPerjalananDinasService, PerjalananDinasService>();
+builder.Services.AddScoped<ISimCardService, SimCardService>();
+builder.Services.AddScoped<IBiayaKesehatanService, BiayaKesehatanService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 // ===================================
 // VALIDATION

@@ -25,13 +25,24 @@ namespace ApiService.Application.Interfaces
         DbSet<MasterJabatan> Jabatans { get; set; }
         DbSet<Pekerja> Pekerjas { get; set; }
         DbSet<MasterTipe> Tipes { get; set; }
+        DbSet<MasterJenisBbm> JenisBbms { get; set; }
+        DbSet<MasterKategoriKecelakaan> KategoriKecelakaans { get; set; }
+        DbSet<DataKecelakaan> DataKecelakaans { get; set; }
+        DbSet<EvidenceKecelakaan> EvidenceKecelakaans { get; set; }
         DbSet<MasterBahanBakar> BahanBakars { get; set; }
         DbSet<MasterKepemilikan> Kepemilikans { get; set; }
         DbSet<MasterVendor> Vendors { get; set; }
         DbSet<RfId> RfIds { get; set; }
         DbSet<Kendaraan> Kendaraans { get; set; }
         DbSet<Driver> Drivers { get; set; }
-
+        DbSet<Periode> Periodes { get; set; }
+        DbSet<MemberParkir> MemberParkirs { get; set; }
+        DbSet<OperasionalUpah> OperasionalUpahs { get; set; }
+        DbSet<BbmSubmission> BbmSubmissions { get; set; }
+        DbSet<TagihanKwh> TagihanKwhs { get; set; }
+        DbSet<PerjalananDinas> PerjalananDinas { get; set; }
+        DbSet<SimCard> SimCards { get; set; }
+        DbSet<BiayaKesehatan> BiayaKesehatans { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 
