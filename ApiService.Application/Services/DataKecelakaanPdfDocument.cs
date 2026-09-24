@@ -87,13 +87,15 @@ namespace ApiService.Application.Services
                                             cd.RelativeColumn(3);
                                         });
 
-                                        t.Cell().BorderTop(1).BorderBottom(1).BorderColor(Colors.Grey.Lighten1)
-                                            .Padding(2).Text("Nomor").FontSize(7);
-                                        t.Cell().BorderTop(1).BorderBottom(1).BorderColor(Colors.Grey.Lighten1)
-                                            .Padding(2).Text(_d.Nomor).FontSize(7).Bold();
+t.Cell().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                        .Padding(2).Text("Nomor").FontSize(7);
+                                    t.Cell().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                        .Padding(2).Text(_d.Nomor).FontSize(7).Bold();
 
-                                        t.Cell().Padding(2).Text("Revisi").FontSize(7);
-                                        t.Cell().Padding(2).Text(_d.Revisi).FontSize(7);
+                                    t.Cell().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                        .Padding(2).Text("Revisi").FontSize(7);
+                                    t.Cell().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                        .Padding(2).Text(_d.Revisi).FontSize(7);
                                     });
                             });
                     });
@@ -118,30 +120,56 @@ namespace ApiService.Application.Services
                         // ── LEFT COLUMN ─────────────────────────────────────
                         row.RelativeItem(3).Column(left =>
                         {
-                            // Judul, Waktu, Dampak, Kategori
+                            // Judul (tabel sendiri)
                             left.Item().Border(1).BorderColor(Colors.Grey.Lighten1)
-                                .Padding(4).Column(c =>
+                                .Table(t =>
                                 {
-                                    c.Item().Text(t =>
+                                    t.ColumnsDefinition(cd =>
                                     {
-                                        t.Span("Judul : ").Bold();
-                                        t.Span(_d.Judul2 ?? _d.Judul);
+                                        cd.ConstantColumn(90);
+                                        cd.RelativeColumn();
                                     });
-                                    c.Item().PaddingTop(3).Text(t =>
+                                    t.Cell().Padding(4).Text("Judul :").Bold();
+                                    t.Cell().Padding(4).Text(_d.Judul2 ?? _d.Judul);
+                                });
+
+                            // Waktu (tabel sendiri)
+                            left.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Table(t =>
+                                {
+                                    t.ColumnsDefinition(cd =>
                                     {
-                                        t.Span("Waktu : ").Bold();
-                                        t.Span($"{_d.Tanggal} pukul {_d.Waktu} WIB");
+                                        cd.ConstantColumn(90);
+                                        cd.RelativeColumn();
                                     });
-                                    c.Item().PaddingTop(3).Text(t =>
+                                    t.Cell().Padding(4).Text("Waktu :").Bold();
+                                    t.Cell().Padding(4).Text($"{_d.Tanggal} pukul {_d.Waktu} WIB");
+                                });
+
+                            // Dampak (tabel sendiri)
+                            left.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Table(t =>
+                                {
+                                    t.ColumnsDefinition(cd =>
                                     {
-                                        t.Span("Dampak : ").Bold();
-                                        t.Span(_d.Dampak);
+                                        cd.ConstantColumn(90);
+                                        cd.RelativeColumn();
                                     });
-                                    c.Item().PaddingTop(3).Text(t =>
+                                    t.Cell().Padding(4).Text("Dampak :").Bold();
+                                    t.Cell().Padding(4).Text(_d.Dampak);
+                                });
+
+                            // Kategori (tabel sendiri)
+                            left.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Table(t =>
+                                {
+                                    t.ColumnsDefinition(cd =>
                                     {
-                                        t.Span("Kategori : ").Bold();
-                                        t.Span(_d.KategoriName);
+                                        cd.ConstantColumn(90);
+                                        cd.RelativeColumn();
                                     });
+                                    t.Cell().Padding(4).Text("Kategori :").Bold();
+                                    t.Cell().Padding(4).Text(_d.KategoriName);
                                 });
 
                             // Kronologi (5W1H - plain Text bullets)
