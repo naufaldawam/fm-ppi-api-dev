@@ -103,133 +103,136 @@ namespace ApiService.Application.Services
 
                     col.Item().PaddingVertical(5);
 
-                    // ── BODY: sections full-width (breakable ke halaman berikutnya) ──
-                    // Judul, Waktu, Dampak, Kategori
-                    col.Item().Border(1).BorderColor(Colors.Grey.Lighten1).Padding(4).Column(c =>
+                    // ── BODY: LEFT (3) + RIGHT (2) ──────────────────────────
+                    col.Item().Row(row =>
                     {
-                        c.Item().Text(t =>
+                        // ── LEFT COLUMN ─────────────────────────────────────
+                        row.RelativeItem(3).Column(left =>
                         {
-                            t.Span("Judul : ").Bold();
-                            t.Span(_d.Judul2 ?? _d.Judul);
+                            // Judul, Waktu, Dampak, Kategori
+                            left.Item().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("Judul : ").Bold();
+                                        t.Span(_d.Judul2 ?? _d.Judul);
+                                    });
+                                    c.Item().PaddingTop(3).Text(t =>
+                                    {
+                                        t.Span("Waktu : ").Bold();
+                                        t.Span($"{_d.Tanggal} pukul {_d.Waktu} WIB");
+                                    });
+                                    c.Item().PaddingTop(3).Text(t =>
+                                    {
+                                        t.Span("Dampak : ").Bold();
+                                        t.Span(_d.Dampak);
+                                    });
+                                    c.Item().PaddingTop(3).Text(t =>
+                                    {
+                                        t.Span("Kategori : ").Bold();
+                                        t.Span(_d.KategoriName);
+                                    });
+                                });
+
+                            // Kronologi (5W1H - plain Text bullets)
+                            left.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text("Kronologi Kejadian :").Bold();
+                                    c.Item().PaddingTop(2);
+
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• WHEN: ").Bold();
+                                        t.Span($"{_d.Tanggal}, pukul {_d.Waktu} WIB");
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• WHERE: ").Bold();
+                                        t.Span(_d.Alamat);
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• WHO: ").Bold();
+                                        t.Span("Pengemudi " + _d.DriverInfo);
+                                    });
+                                    if (!string.IsNullOrWhiteSpace(_d.PejabatInfo))
+                                    {
+                                        c.Item().PaddingLeft(12).Text(
+                                            "Penugasan dari: " + _d.PejabatInfo);
+                                    }
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• WHAT: ").Bold();
+                                        t.Span(_d.DetailKejadian);
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• WHY: ").Bold();
+                                        t.Span(_d.PenyebabKejadian);
+                                    });
+                                    c.Item().Text(t =>
+                                    {
+                                        t.Span("• HOW: ").Bold();
+                                        t.Span(_d.BagaimanaTerjadinya);
+                                    });
+                                });
                         });
-                        c.Item().PaddingTop(3).Text(t =>
+
+                        // ── RIGHT COLUMN ────────────────────────────────────
+                        row.RelativeItem(2).Column(right =>
                         {
-                            t.Span("Waktu : ").Bold();
-                            t.Span($"{_d.Tanggal} pukul {_d.Waktu} WIB");
-                        });
-                        c.Item().PaddingTop(3).Text(t =>
-                        {
-                            t.Span("Dampak : ").Bold();
-                            t.Span(_d.Dampak);
-                        });
-                        c.Item().PaddingTop(3).Text(t =>
-                        {
-                            t.Span("Kategori : ").Bold();
-                            t.Span(_d.KategoriName);
+                            right.Item().Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text("Akar Permasalahan (Root Causes) :")
+                                        .Bold().Italic();
+                                    c.Item().PaddingTop(3)
+                                        .Text(FormatNumberedList(_d.AkarPermasalahan));
+                                });
+
+                            right.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text("Tindakan segera yang dilakukan saat itu :")
+                                        .Bold();
+                                    c.Item().PaddingTop(3)
+                                        .Text(FormatNumberedList(_d.TindakanSegara));
+                                });
+
+                            right.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text("Tindakan Perbaikan (follow-up) :").Bold();
+                                    c.Item().PaddingTop(3)
+                                        .Text(FormatNumberedList(_d.TindakanPerbaikan));
+                                });
+
+                            // Foto Bukti (di kolom kanan, layout lama)
+                            right.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                                .Padding(4).Column(c =>
+                                {
+                                    c.Item().Text("Foto Bukti :").Bold();
+
+                                    var photos = _d.FotoBukti
+                                        .Where(f => f != null && f.Length > 0)
+                                        .ToList();
+
+                                    if (photos.Count > 0)
+                                    {
+                                        var limit = photos.Count > 4 ? 4 : photos.Count;
+                                        for (var i = 0; i < limit; i++)
+                                        {
+                                            c.Item().PaddingTop(4)
+                                                .Width(120)
+                                                .Height(80)
+                                                .Image(photos[i], ImageScaling.FitWidth);
+                                        }
+                                    }
+                                });
                         });
                     });
-
-                    // Kronologi (5W1H) - plain Text items (breakable, tidak pakai Row)
-                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                        .Padding(4).Column(c =>
-                        {
-                            c.Item().Text("Kronologi Kejadian :").Bold();
-                            c.Item().PaddingTop(2);
-
-                            // WHEN
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• WHEN: ").Bold();
-                                t.Span($"{_d.Tanggal}, pukul {_d.Waktu} WIB");
-                            });
-                            // WHERE
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• WHERE: ").Bold();
-                                t.Span(_d.Alamat);
-                            });
-                            // WHO
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• WHO: ").Bold();
-                                t.Span("Pengemudi " + _d.DriverInfo);
-                            });
-                            if (!string.IsNullOrWhiteSpace(_d.PejabatInfo))
-                            {
-                                c.Item().PaddingLeft(12).Text(
-                                    "Penugasan dari: " + _d.PejabatInfo);
-                            }
-                            // WHAT
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• WHAT: ").Bold();
-                                t.Span(_d.DetailKejadian);
-                            });
-                            // WHY
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• WHY: ").Bold();
-                                t.Span(_d.PenyebabKejadian);
-                            });
-                            // HOW
-                            c.Item().Text(t =>
-                            {
-                                t.Span("• HOW: ").Bold();
-                                t.Span(_d.BagaimanaTerjadinya);
-                            });
-                        });
-
-                    // Akar Permasalahan
-                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                        .Padding(4).Column(c =>
-                        {
-                            c.Item().Text("Akar Permasalahan (Root Causes) :")
-                                .Bold().Italic();
-                            c.Item().PaddingTop(3)
-                                .Text(FormatNumberedList(_d.AkarPermasalahan));
-                        });
-
-                    // Tindakan Segera
-                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                        .Padding(4).Column(c =>
-                        {
-                            c.Item().Text("Tindakan segera yang dilakukan saat itu :")
-                                .Bold();
-                            c.Item().PaddingTop(3)
-                                .Text(FormatNumberedList(_d.TindakanSegara));
-                        });
-
-                    // Tindakan Perbaikan
-                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                        .Padding(4).Column(c =>
-                        {
-                            c.Item().Text("Tindakan Perbaikan (follow-up) :").Bold();
-                            c.Item().PaddingTop(3)
-                                .Text(FormatNumberedList(_d.TindakanPerbaikan));
-                        });
-
-                    // ── FOTO BUKTI (full width - bisa lanjut ke halaman berikutnya) ──
-                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                        .Padding(4).Column(c =>
-                        {
-                            c.Item().Text("Foto Bukti :").Bold();
-
-                            var photos = _d.FotoBukti
-                                .Where(f => f != null && f.Length > 0)
-                                .ToList();
-
-                            if (photos.Count > 0)
-                            {
-                                var limit = photos.Count > 4 ? 4 : photos.Count;
-                                for (var i = 0; i < limit; i++)
-                                {
-                                    c.Item().PaddingTop(4)
-                                        .Width(120)
-                                        .Height(80)
-                                        .Image(photos[i], ImageScaling.FitWidth);
-                                }
-                            }
-                        });
                 });
             });
         }
