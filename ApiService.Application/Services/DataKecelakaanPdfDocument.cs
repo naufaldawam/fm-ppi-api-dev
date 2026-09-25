@@ -245,31 +245,29 @@ t.Cell().Border(1).BorderColor(Colors.Grey.Lighten1)
                                     c.Item().PaddingTop(3)
                                         .Text(FormatNumberedList(_d.TindakanPerbaikan));
                                 });
-
-                            // Foto Bukti (di kolom kanan, layout lama)
-                            right.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
-                                .Padding(4).Column(c =>
-                                {
-                                    c.Item().Text("Foto Bukti :").Bold();
-
-                                    var photos = _d.FotoBukti
-                                        .Where(f => f != null && f.Length > 0)
-                                        .ToList();
-
-                                    if (photos.Count > 0)
-                                    {
-                                        var limit = photos.Count > 4 ? 4 : photos.Count;
-                                        for (var i = 0; i < limit; i++)
-                                        {
-                                            c.Item().PaddingTop(4)
-                                                .Width(120)
-                                                .Height(80)
-                                                .Image(photos[i], ImageScaling.FitWidth);
-                                        }
-                                    }
-                                });
                         });
                     });
+
+                    // ── FOTO BUKTI (full width, breakable - tidak crash dengan banyak/foto besar) ──
+                    col.Item().PaddingTop(4).Border(1).BorderColor(Colors.Grey.Lighten1)
+                        .Padding(4).Column(c =>
+                        {
+                            c.Item().Text("Foto Bukti :").Bold();
+
+                            var photos = _d.FotoBukti
+                                .Where(f => f != null && f.Length > 0)
+                                .ToList();
+
+                            if (photos.Count > 0)
+                            {
+                                for (var i = 0; i < photos.Count; i++)
+                                {
+                                    c.Item().PaddingTop(4)
+                                        .Width(110)
+                                        .Image(photos[i], ImageScaling.FitWidth);
+                                }
+                            }
+                        });
                 });
             });
         }
