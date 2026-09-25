@@ -306,11 +306,15 @@ namespace ApiService.Application.Services
             var newEvidences = new List<EvidenceKecelakaan>();
             if (photos != null && photos.Count > 0)
             {
-                var maxSort = await _context.EvidenceKecelakaans
-                    .Where(e => !e.IsDeleted && e.DataKecelakaanId == id)
-                    .Select(e => e.SortOrder)
-                    .DefaultIfEmpty(0)
-                    .MaxAsync();
+                var maxSort = 0;
+                var hasEvidence = await _context.EvidenceKecelakaans
+                    .AnyAsync(e => !e.IsDeleted && e.DataKecelakaanId == id);
+                if (hasEvidence)
+                {
+                    maxSort = await _context.EvidenceKecelakaans
+                        .Where(e => !e.IsDeleted && e.DataKecelakaanId == id)
+                        .MaxAsync(e => e.SortOrder);
+                }
 
                 var sort = maxSort + 1;
                 foreach (var photo in photos)
@@ -397,11 +401,15 @@ namespace ApiService.Application.Services
                 return ApiResponse<EvidenceKecelakaanDto>.ErrorResponse(
                     uploadResult.ErrorCode!, uploadResult.Message!);
 
-            var maxSort = await _context.EvidenceKecelakaans
-                .Where(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId)
-                .Select(e => e.SortOrder)
-                .DefaultIfEmpty(0)
-                .MaxAsync();
+            var maxSort = 0;
+            var hasEvidence = await _context.EvidenceKecelakaans
+                .AnyAsync(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId);
+            if (hasEvidence)
+            {
+                maxSort = await _context.EvidenceKecelakaans
+                    .Where(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId)
+                    .MaxAsync(e => e.SortOrder);
+            }
 
             var evidence = new EvidenceKecelakaan
             {
