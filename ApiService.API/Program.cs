@@ -149,6 +149,8 @@ builder.Services.AddScoped<IPerjalananDinasService, PerjalananDinasService>();
 builder.Services.AddScoped<ISimCardService, SimCardService>();
 builder.Services.AddScoped<IBiayaKesehatanService, BiayaKesehatanService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IOperasionalTagihanBbmBulkUploadService, OperasionalTagihanBbmBulkUploadService>();
+builder.Services.AddScoped<IOperasionalTagihanKwhUmumBulkUploadService, OperasionalTagihanKwhUmumBulkUploadService>();
 
 // ===================================
 // VALIDATION
@@ -282,7 +284,9 @@ Log.Information(
     swaggerBasePath,
     builder.Environment.EnvironmentName);
 
-if (true)
+    swaggerEnabled = true;
+
+if (swaggerEnabled)
 {
     Log.Information("Swagger is ENABLED");
 
