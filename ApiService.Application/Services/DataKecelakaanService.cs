@@ -195,6 +195,7 @@ namespace ApiService.Application.Services
                 TindakanPerbaikan = request.TindakanPerbaikan.Trim(),
                 // Submit langsung: tanpa workflow draft/publish
                 Status = DataKecelakaan.StatusPublished,
+                Revisi = 0,
                 IsActive = true,
                 CreatedBy = userId
             };
@@ -243,6 +244,9 @@ namespace ApiService.Application.Services
 
             if (dataKecelakaan == null)
                 return ApiResponse<DataKecelakaanDto>.ErrorResponse("ERR-DATAKECELAKAAN-001", "Data kecelakaan not found");
+
+            // Setiap edit => revisi naik
+            dataKecelakaan.Revisi = dataKecelakaan.Revisi + 1;
 
             var kategoriOk = await _context.KategoriKecelakaans
                 .AnyAsync(k => k.Id == request.KategoriId && !k.IsDeleted);
@@ -302,11 +306,15 @@ namespace ApiService.Application.Services
             var newEvidences = new List<EvidenceKecelakaan>();
             if (photos != null && photos.Count > 0)
             {
-                var maxSort = await _context.EvidenceKecelakaans
-                    .Where(e => !e.IsDeleted && e.DataKecelakaanId == id)
-                    .Select(e => e.SortOrder)
-                    .DefaultIfEmpty(0)
-                    .MaxAsync();
+                var maxSort = 0;
+                var hasEvidence = await _context.EvidenceKecelakaans
+                    .AnyAsync(e => !e.IsDeleted && e.DataKecelakaanId == id);
+                if (hasEvidence)
+                {
+                    maxSort = await _context.EvidenceKecelakaans
+                        .Where(e => !e.IsDeleted && e.DataKecelakaanId == id)
+                        .MaxAsync(e => e.SortOrder);
+                }
 
                 var sort = maxSort + 1;
                 foreach (var photo in photos)
@@ -393,11 +401,15 @@ namespace ApiService.Application.Services
                 return ApiResponse<EvidenceKecelakaanDto>.ErrorResponse(
                     uploadResult.ErrorCode!, uploadResult.Message!);
 
-            var maxSort = await _context.EvidenceKecelakaans
-                .Where(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId)
-                .Select(e => e.SortOrder)
-                .DefaultIfEmpty(0)
-                .MaxAsync();
+            var maxSort = 0;
+            var hasEvidence = await _context.EvidenceKecelakaans
+                .AnyAsync(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId);
+            if (hasEvidence)
+            {
+                maxSort = await _context.EvidenceKecelakaans
+                    .Where(e => !e.IsDeleted && e.DataKecelakaanId == dataKecelakaanId)
+                    .MaxAsync(e => e.SortOrder);
+            }
 
             var evidence = new EvidenceKecelakaan
             {
@@ -497,11 +509,27 @@ namespace ApiService.Application.Services
                 }
             }
 
+            // Logo PPI dari Assets (folder API - dipublish bersama output)
+            var logoBytes = new byte[0];
+            try
+            {
+                var logoPath = Path.Combine(Directory.GetCurrentDirectory(), "Assets", "logo ppi black.png");
+                if (File.Exists(logoPath))
+                    logoBytes = await File.ReadAllBytesAsync(logoPath);
+            }
+            catch (Exception ex)
+            {
+                // logo hilang -> PDF tetap jalan tanpa gambar
+            }
+
             var data = new DataKecelakaanPdfDto
             {
                 Nomor = item.Nomor,
+                Revisi = FormatRevisi(item.Revisi),
                 Status = item.Status,
-                Judul = item.Judul,
+                LogoBytes = logoBytes,
+                Judul  = "AWAL KEJADIAN KECELAKAAN KERJA",   // banner text (red bar)
+                Judul2 = item.Judul,
                 Tanggal = $"{item.TanggalKejadian:dd-MM-yyyy}",
                 Waktu = item.WaktuKejadian,
                 Dampak = item.Dampak,
@@ -569,6 +597,14 @@ namespace ApiService.Application.Services
 
             var result = new string(chars.ToArray()).Trim();
             return result.Length == 0 ? "-" : result;
+        }
+
+        /// <summary>Revisi sebagai "00", "01", ... (display di header PDF).</summary>
+        private static string FormatRevisi(int revisi)
+        {
+            if (revisi < 10)
+                return $"0{revisi}";
+            return $"{revisi}";
         }
 
         // =========================================================
@@ -661,6 +697,7 @@ namespace ApiService.Application.Services
             TindakanSegara = d.TindakanSegara,
             TindakanPerbaikan = d.TindakanPerbaikan,
             Status = d.Status,
+            Revisi = d.Revisi,
             Evidences = evidences != null ? evidences.Select(MapEvidenceToDto).ToList() : new List<EvidenceKecelakaanDto>(),
             IsActive = d.IsActive,
             CreatedAt = d.CreatedAt,

@@ -78,6 +78,9 @@ namespace ApiService.Domain.Entities
         [MaxLength(50)]
         public string Nomor { get; set; } = string.Empty;
 
+        /// <summary>Revisi laporan - 0 saat create, +1 setiap kali laporan diedit.</summary>
+        public int Revisi { get; set; } = 0;
+
         public bool IsActive { get; set; } = true;
     }
 }

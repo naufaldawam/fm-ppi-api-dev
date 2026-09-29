@@ -1840,6 +1840,7 @@ public class SimCardImportResponse
         public string TindakanSegara { get; set; } = string.Empty;
         public string TindakanPerbaikan { get; set; } = string.Empty;
         public string Status { get; set; } = string.Empty;
+        public int Revisi { get; set; }
         public List<EvidenceKecelakaanDto> Evidences { get; set; } = new();
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
