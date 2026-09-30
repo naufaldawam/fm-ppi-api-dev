@@ -10,7 +10,7 @@ using ApiService.Application.Services;
 namespace ApiService.API.Controllers
 {
     [ApiController]
-    [Route("operasional-tagihan-kwh-umum/bulk-upload")]
+    [Route("operasional-tagihan-kwh-umum")]
     [Authorize]
     [Produces("application/json")]
     public class OperasionalTagihanKwhUmumController(

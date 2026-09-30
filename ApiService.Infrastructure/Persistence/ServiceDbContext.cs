@@ -41,6 +41,7 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<PerjalananDinas> PerjalananDinas { get; set; }
         public DbSet<SimCard> SimCards { get; set; }
         public DbSet<BiayaKesehatan> BiayaKesehatans { get; set; }
+        public DbSet<OperasionalTagihanBbmRekonsiliasi> OperasionalTagihanBbmRekonsiliasis { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
