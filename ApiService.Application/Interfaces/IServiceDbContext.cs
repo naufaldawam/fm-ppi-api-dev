@@ -43,6 +43,7 @@ namespace ApiService.Application.Interfaces
         DbSet<PerjalananDinas> PerjalananDinas { get; set; }
         DbSet<SimCard> SimCards { get; set; }
         DbSet<BiayaKesehatan> BiayaKesehatans { get; set; }
+        DbSet<OperasionalTagihanBbmRekonsiliasi> OperasionalTagihanBbmRekonsiliasis { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 

@@ -1629,7 +1629,7 @@ namespace ApiService.Application.DTOs
         public decimal BiayaSimCard { get; set; }
     }
 
-public class SimCardImportResponse
+    public class SimCardImportResponse
     {
         public int TotalRows { get; set; }
         public int SuccessCount { get; set; }
@@ -1875,5 +1875,130 @@ public class SimCardImportResponse
         public int TotalPublished { get; set; }
         public int TotalDraft { get; set; }
         public long TotalFotoBukti { get; set; }
+    }
+    // ============== import tagihan bbm ==============
+    public class OperasionalTagihanBbmDto
+    {
+        public string Id { get; set; } = string.Empty;
+
+        public string PeriodeId { get; set; } = string.Empty;
+        public string NamaPeriode { get; set; } = string.Empty;
+
+        public string? BbmSubmissionId { get; set; }
+
+        public DateTime TanggalRitel { get; set; }
+        public string? NomorReferensiRitel { get; set; }
+        public string? NoPekerjaRitel { get; set; }
+        public string NomorPolisiRitel { get; set; } = string.Empty;
+        public string? NamaRitel { get; set; }
+        public decimal JumlahBbmRitel { get; set; }
+        public decimal NilaiRitel { get; set; }
+
+        public string? DriverId { get; set; }
+        public string? NoPekerjaDriver { get; set; }
+        public string? NamaDriver { get; set; }
+
+        public string? KendaraanId { get; set; }
+        public string? NomorPolisiDriver { get; set; }
+
+        public decimal? JumlahBbmDriver { get; set; }
+        public decimal? NilaiNotaDriver { get; set; }
+        public DateTime? TanggalDriver { get; set; }
+
+        public string StatusMatching { get; set; } = string.Empty;
+        public string? MismatchReason { get; set; }
+        public string? SourceFileName { get; set; }
+        public int? SourceRowNumber { get; set; }
+        public DateTime? MatchedAt { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class OperasionalTagihanBbmFilterRequest
+    {
+        public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
+        public string? StatusMatching { get; set; }
+        public DateTime? TanggalFrom { get; set; }
+        public DateTime? TanggalTo { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class OperasionalTagihanBbmImportRow
+    {
+        public int RowNumber { get; set; }
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TanggalRitelText { get; set; } = string.Empty;
+        public DateTime? TanggalRitel { get; set; }
+        public string NomorReferensiRitel { get; set; } = string.Empty;
+        public string NoPekerjaRitel { get; set; } = string.Empty;
+        public string NomorPolisiRitel { get; set; } = string.Empty;
+        public string NamaRitel { get; set; } = string.Empty;
+        public string JumlahBbmRitelText { get; set; } = string.Empty;
+        public decimal? JumlahBbmRitel { get; set; }
+        public string NilaiRitelText { get; set; } = string.Empty;
+        public decimal? NilaiRitel { get; set; }
+    }
+
+    public class OperasionalTagihanBbmImportPreviewDto
+    {
+        public string NoPekerjaRitel { get; set; } = string.Empty;
+        public string? NamaDriver { get; set; }
+        public string NomorPolisiRitel { get; set; } = string.Empty;
+        public string? NomorPolisiDriver { get; set; }
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalRitel { get; set; }
+        public decimal JumlahBbmRitel { get; set; }
+        public decimal? JumlahBbmDriver { get; set; }
+        public decimal NilaiRitel { get; set; }
+        public decimal? NilaiNotaDriver { get; set; }
+        public string StatusMatching { get; set; } = string.Empty;
+        public string? MismatchReason { get; set; }
+    }
+
+    public class OperasionalTagihanBbmImportResponse
+    {
+        public int TotalRows { get; set; }
+        public int InsertedOperasionalTagihanBbmRekonsiliasi { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedBbmReconciliation { get; set; }
+        public int MatchedCount { get; set; }
+        public int MismatchCount { get; set; }
+        public int NotMatchedCount { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<OperasionalTagihanBbmImportPreviewDto> Preview { get; set; } = new();
+    }
+
+    // ============== import tagihan kwh ==============
+    public class TagihanKwhUmumBulkUploadRowDto
+    {
+        public int RowNumber { get; set; }
+        public string PeriodeName { get; set; } = string.Empty;
+        public string TanggalPenagihanText { get; set; } = string.Empty;
+        public DateTime? TanggalPenagihan { get; set; }
+        public string JumlahBiayaText { get; set; } = string.Empty;
+        public decimal? JumlahBiaya { get; set; }
+        public string JumlahKwhText { get; set; } = string.Empty;
+        public decimal? JumlahKwh { get; set; }
+    }
+
+    public class TagihanKwhUmumBulkUploadPreviewDto
+    {
+        public string NamaPeriode { get; set; } = string.Empty;
+        public DateTime TanggalPenagihan { get; set; }
+        public decimal JumlahBiaya { get; set; }
+        public decimal JumlahKwh { get; set; }
+    }
+
+    public class TagihanKwhUmumBulkUploadResponse
+    {
+        public int TotalRows { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public int InsertedTagihanKwh { get; set; }
+        public List<ImportRowError> Errors { get; set; } = new();
+        public List<TagihanKwhUmumBulkUploadPreviewDto> Preview { get; set; } = new();
     }
 }
