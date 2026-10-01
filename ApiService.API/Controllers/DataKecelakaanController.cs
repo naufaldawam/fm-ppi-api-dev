@@ -64,9 +64,9 @@ namespace ApiService.API.Controllers
         /// <summary>Dropdown Pejabat (Pekerja): GET /data-kecelakaan/pekerja-lookup?search=xxx</summary>
         [HttpGet("pekerja-lookup")]
         [RequirePermission("data-kecelakaan.read")]
-        public async Task<IActionResult> GetPekerjaLookup([FromQuery] string? search, [FromQuery] bool activeOnly = true)
+        public async Task<IActionResult> GetPekerjaLookup([FromQuery] string? search, [FromQuery] string? jabatanId, [FromQuery] bool activeOnly = true)
         {
-            var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
+            var result = await _pekerjaService.GetLookupAsync(search, jabatanId, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 

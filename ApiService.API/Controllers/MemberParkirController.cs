@@ -59,6 +59,7 @@ namespace ApiService.API.Controllers
         public async Task<IActionResult> GetPekerjaLookup(
             [FromQuery] string? pekerjaId,
             [FromQuery] string? search,
+            [FromQuery] string? jabatanId,
             [FromQuery] bool activeOnly = true)
         {
             if (!string.IsNullOrWhiteSpace(pekerjaId))
@@ -67,7 +68,7 @@ namespace ApiService.API.Controllers
                 return StatusCode(byIdResult.StatusCode, byIdResult);
             }
 
-            var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
+            var result = await _pekerjaService.GetLookupAsync(search, jabatanId, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
