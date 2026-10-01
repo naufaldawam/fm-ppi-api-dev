@@ -14,7 +14,7 @@ namespace ApiService.Application.Services
     public interface IPekerjaService
     {
         Task<ApiResponse<PagedResponse<PekerjaDto>>> GetAllAsync(PekerjaFilterRequest filter);
-        Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
+        Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, string? jabatanId, bool activeOnly = true);
         Task<ApiResponse<PekerjaDto>> GetByIdAsync(string id);
         Task<ApiResponse<PekerjaDto>> CreateAsync(CreatePekerjaRequest request, string userId);
         Task<ApiResponse<PekerjaDto>> UpdateAsync(string id, UpdatePekerjaRequest request, string userId);
@@ -69,7 +69,7 @@ namespace ApiService.Application.Services
             });
         }
 
-        public async Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        public async Task<ApiResponse<List<PekerjaLookupDto>>> GetLookupAsync(string? search, string? jabatanId, bool activeOnly = true)
         {
             var query = _context.Pekerjas
                 .Include(p => p.Jabatan)
@@ -82,6 +82,9 @@ namespace ApiService.Application.Services
                 query = query.Where(p =>
                     p.NamaPekerja.Contains(search) ||
                     p.NoPekerja.Contains(search));
+
+            if (!string.IsNullOrEmpty(jabatanId))
+                query = query.Where(p => p.JabatanId == jabatanId);
 
             var items = await query
                 .OrderBy(p => p.NamaPekerja)

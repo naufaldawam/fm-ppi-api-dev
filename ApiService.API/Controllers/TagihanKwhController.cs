@@ -55,9 +55,10 @@ namespace ApiService.API.Controllers
         [RequirePermission("tagihan-kwh.read")]
         public async Task<IActionResult> GetPekerjaLookup(
             [FromQuery] string? search,
+            [FromQuery] string? jabatanId,
             [FromQuery] bool activeOnly = true)
         {
-            var result = await _pekerjaService.GetLookupAsync(search, activeOnly);
+            var result = await _pekerjaService.GetLookupAsync(search, jabatanId, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
