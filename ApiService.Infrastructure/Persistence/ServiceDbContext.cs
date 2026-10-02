@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using ApiService.Domain.Entities;
 using ApiService.Application.Interfaces;
 using ApiService.Application.DTOs;
+using ApiService.Domain.Entities.Mobile;
 
 namespace ApiService.Infrastructure.Persistence
 {
@@ -47,6 +48,9 @@ namespace ApiService.Infrastructure.Persistence
         // mobile
         public DbSet<DailyCheckUpEntity> DailyCheckUpEntities { get; set; }
         public DbSet<DailyCheckUpEvidance> DailyCheckUpEvidances { get; set; }
+
+        public DbSet<InspeksiKendaraanDetailEntity> InspeksiKendaraanDetailEntities { get; set; }
+        public DbSet<InspeksiKendaraanEntity> InspeksiKendaraanEntities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -638,6 +642,52 @@ namespace ApiService.Infrastructure.Persistence
                       .HasForeignKey(e => e.DataDcuId)
                       .OnDelete(DeleteBehavior.Restrict);
             });
+
+            modelBuilder.Entity<InspeksiKendaraanEntity>(entity =>
+            {
+                entity.ToTable("InspeksiKendaraans");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.KendaraanId);
+                entity.HasIndex(e => e.DriverId);
+                entity.HasIndex(e => e.TanggalInspeksi);
+                entity.HasIndex(e => e.KelayakanJalan);
+                entity.HasIndex(e => e.IsDeleted);
+
+                entity.Property(e => e.KelayakanJalan).HasMaxLength(30);
+                entity.Property(e => e.Keterangan).HasMaxLength(1000);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.Kendaraan)
+                    .WithMany()
+                    .HasForeignKey(e => e.KendaraanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Driver)
+                    .WithMany()
+                    .HasForeignKey(e => e.DriverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<InspeksiKendaraanDetailEntity>(entity =>
+            {
+                entity.ToTable("InspeksiKendaraanDetails");
+                entity.HasKey(e => e.Id);
+                entity.HasIndex(e => e.InspeksiKendaraanId);
+                entity.HasIndex(e => new { e.InspeksiKendaraanId, e.SortOrder });
+                entity.HasIndex(e => e.IsDeleted);
+
+                entity.Property(e => e.Kategori).HasMaxLength(100);
+                entity.Property(e => e.NamaPemeriksaan).HasMaxLength(255);
+                entity.Property(e => e.Keterangan).HasMaxLength(500);
+                entity.Property(e => e.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(e => e.InspeksiKendaraan)
+                      .WithMany(e => e.Details)
+                      .HasForeignKey(e => e.InspeksiKendaraanId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
         }
     }
 }

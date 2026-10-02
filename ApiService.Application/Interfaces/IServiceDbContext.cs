@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ApiService.Domain.Entities;
 using ApiService.Application.DTOs;
+using ApiService.Domain.Entities.Mobile;
 
 namespace ApiService.Application.Interfaces
 {
@@ -49,6 +50,9 @@ namespace ApiService.Application.Interfaces
         // mobile
         DbSet<DailyCheckUpEntity> DailyCheckUpEntities { get; set; }
         DbSet<DailyCheckUpEvidance> DailyCheckUpEvidances { get; set; }
+
+        DbSet<InspeksiKendaraanDetailEntity> InspeksiKendaraanDetailEntities { get; set; }
+        DbSet<InspeksiKendaraanEntity> InspeksiKendaraanEntities { get; set; }
     }
 
     /// <summary>
