@@ -45,6 +45,10 @@ namespace ApiService.Application.Interfaces
         DbSet<BiayaKesehatan> BiayaKesehatans { get; set; }
         DbSet<OperasionalTagihanBbmRekonsiliasi> OperasionalTagihanBbmRekonsiliasis { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+        // mobile
+        DbSet<DailyCheckUpEntity> DailyCheckUpEntities { get; set; }
+        DbSet<DailyCheckUpEvidance> DailyCheckUpEvidances { get; set; }
     }
 
     /// <summary>

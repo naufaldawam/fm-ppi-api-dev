@@ -44,6 +44,10 @@ namespace ApiService.Infrastructure.Persistence
         public DbSet<OperasionalTagihanBbmRekonsiliasi> OperasionalTagihanBbmRekonsiliasis { get; set; }
         public ServiceDbContext(DbContextOptions<ServiceDbContext> options) : base(options) { }
 
+        // mobile
+        public DbSet<DailyCheckUpEntity> DailyCheckUpEntities { get; set; }
+        public DbSet<DailyCheckUpEvidance> DailyCheckUpEvidances { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -565,6 +569,74 @@ namespace ApiService.Infrastructure.Persistence
                     .WithMany()
                     .HasForeignKey(e => e.DataKecelakaanId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DailyCheckUpEntity>(entity =>
+            {
+                entity.ToTable("DailyCheckUps");
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => e.DriverId);
+                entity.HasIndex(e => e.TanggalDcu);
+                entity.HasIndex(e => e.StatusKesehatan);
+                entity.HasIndex(e => e.IsDeleted);
+
+                entity.HasIndex(e => new { e.DriverId, e.TanggalDcu })
+                    .IsUnique()
+                    .HasFilter("[IsDeleted] = 0");
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.Property(e => e.StatusKesehatan)
+                    .HasDefaultValue(DailyCheckUpEntity.StatusFit);
+
+                entity.Property(e => e.TekananDarahSistolik)
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.TekananDarahDiastolik)
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.SaturasiOksigen)
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.NadiDenyut)
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.SuhuTubuh)
+                    .HasPrecision(18, 2);
+
+                entity.Property(e => e.Keterangan)
+                    .HasMaxLength(1000);
+
+                entity.HasOne(e => e.Driver)
+                    .WithMany()
+                    .HasForeignKey(e => e.DriverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DailyCheckUpEvidance>(entity =>
+            {
+                entity.ToTable("DailyCheckUpEvidences");
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => e.DataDcuId);
+                entity.HasIndex(e => e.GeneratedName)
+                      .IsUnique();
+
+                entity.HasIndex(e => e.SortOrder);
+                entity.HasIndex(e => e.IsDeleted);
+
+                entity.Property(e => e.IsActive)
+                      .HasDefaultValue(true);
+
+                entity.Property(e => e.FileSize)
+                      .HasColumnType("bigint");
+
+                entity.HasOne(e => e.DataDcu)
+                      .WithMany(e => e.Evidences)
+                      .HasForeignKey(e => e.DataDcuId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }
