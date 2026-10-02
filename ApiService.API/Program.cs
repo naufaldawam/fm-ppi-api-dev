@@ -23,6 +23,7 @@ using ApiService.Application.Interfaces;
 using ApiService.Application.Configurations;
 
 using ApiService.API.Middleware;
+using ApiService.Application.Services.Mobile;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +152,9 @@ builder.Services.AddScoped<IBiayaKesehatanService, BiayaKesehatanService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IOperasionalTagihanBbmBulkUploadService, OperasionalTagihanBbmBulkUploadService>();
 builder.Services.AddScoped<IOperasionalTagihanKwhUmumBulkUploadService, OperasionalTagihanKwhUmumBulkUploadService>();
+
+// mobile
+builder.Services.AddScoped<IDcuService, DcuService>();
 
 // ===================================
 // VALIDATION
