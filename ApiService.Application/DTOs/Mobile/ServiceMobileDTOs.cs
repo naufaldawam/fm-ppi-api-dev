@@ -77,4 +77,87 @@ namespace ApiService.Application.DTOs.Mobile
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
     }
+
+    // =========================================================================
+    // =================== Inspeksi Kendaran DTOs ===================
+    // =========================================================================
+    public class InspeksiKendaraanFilterRequest
+    {
+        public string? Search { get; set; }
+        public string? KendaraanId { get; set; }
+        public string? DriverId { get; set; }
+        public DateTime? TanggalInspeksi { get; set; }
+        public string? KelayakanJalan { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
+
+    public class CreateInspeksiKendaraanRequest
+    {
+        public string KendaraanId { get; set; } = string.Empty;
+        public string DriverId { get; set; } = string.Empty;
+        public DateTime TanggalInspeksi { get; set; }
+        public string? Keterangan { get; set; }
+        public List<CreateInspeksiKendaraanDetailRequest> Details { get; set; } = new();
+    }
+
+    public class UpdateInspeksiKendaraanRequest
+    {
+        public string KendaraanId { get; set; } = string.Empty;
+        public string DriverId { get; set; } = string.Empty;
+        public DateTime TanggalInspeksi { get; set; }
+        public string? Keterangan { get; set; }
+        public List<UpdateInspeksiKendaraanDetailRequest> Details { get; set; } = new();
+    }
+
+    public class CreateInspeksiKendaraanDetailRequest
+    {
+        public string Kategori { get; set; } = string.Empty;
+        public string NamaPemeriksaan { get; set; } = string.Empty;
+        public bool IsOk { get; set; }
+        public string? Keterangan { get; set; }
+        public int SortOrder { get; set; }
+    }
+
+    public class UpdateInspeksiKendaraanDetailRequest
+    {
+        public string Kategori { get; set; } = string.Empty;
+        public string NamaPemeriksaan { get; set; } = string.Empty;
+        public bool IsOk { get; set; }
+        public string? Keterangan { get; set; }
+        public int SortOrder { get; set; }
+    }
+
+    public class InspeksiKendaraanDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string KendaraanId { get; set; } = string.Empty;
+        public string NomorPolisi { get; set; } = string.Empty;
+        public string DriverId { get; set; } = string.Empty;
+        public string NoPekerjaDriver { get; set; } = string.Empty;
+        public string NamaDriver { get; set; } = string.Empty;
+        public DateTime TanggalInspeksi { get; set; }
+        public string KelayakanJalan { get; set; } = string.Empty;
+        public bool LayakJalan => string.Equals(
+            KelayakanJalan,
+            Domain.Entities.Mobile.InspeksiKendaraanEntity.StatusLayakJalan,
+            StringComparison.OrdinalIgnoreCase);
+        public string? Keterangan { get; set; }
+        public bool IsActive { get; set; }
+        public List<InspeksiKendaraanDetailDto> Details { get; set; } = new();
+        public DateTime CreatedAt { get; set; }
+        public DateTime? ModifiedAt { get; set; }
+    }
+
+    public class InspeksiKendaraanDetailDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Kategori { get; set; } = string.Empty;
+        public string NamaPemeriksaan { get; set; } = string.Empty;
+        public bool IsOk { get; set; }
+        public string Status => IsOk ? "OK" : "Tidak OK";
+        public string? Keterangan { get; set; }
+        public int SortOrder { get; set; }
+    }
 }
