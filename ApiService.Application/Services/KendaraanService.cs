@@ -14,7 +14,7 @@ namespace ApiService.Application.Services
     public interface IKendaraanService
     {
         Task<ApiResponse<PagedResponse<KendaraanDto>>> GetAllAsync(KendaraanFilterRequest filter);
-        Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true);
+        Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, string? pejabatId, bool withoutRfid = false, bool activeOnly = true);
         Task<ApiResponse<List<PekerjaLookupDto>>> GetPekerjaLookupByJabatanAsync(string jabatanId, string? search, bool activeOnly = true);
         Task<ApiResponse<KendaraanDto>> GetByIdAsync(string id);
         Task<ApiResponse<KendaraanDto>> CreateAsync(CreateKendaraanRequest request, string userId);
@@ -95,12 +95,23 @@ namespace ApiService.Application.Services
         // LOOKUP KENDARAAN (dropdown Nopol)
         // =========================================================
 
-        public async Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, bool activeOnly = true)
+        public async Task<ApiResponse<List<KendaraanLookupDto>>> GetLookupAsync(string? search, string? pejabatId, bool withoutRfid = false, bool activeOnly = true)
         {
             var query = _context.Kendaraans.Where(k => !k.IsDeleted);
 
             if (activeOnly)
                 query = query.Where(k => k.IsActive);
+
+            if (!string.IsNullOrEmpty(pejabatId))
+                query = query.Where(k => k.PekerjaId == pejabatId);
+
+            if (withoutRfid)
+            {
+                query = query.Where(k =>
+                    !_context.RfIds.Any(r =>
+                        r.KendaraanId == k.Id &&
+                        !r.IsDeleted));
+            }
 
             if (!string.IsNullOrEmpty(search))
                 query = query.Where(k => k.NomorPolisi.Contains(search));
