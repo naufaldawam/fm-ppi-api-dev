@@ -152,6 +152,7 @@ builder.Services.AddScoped<IBiayaKesehatanService, BiayaKesehatanService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IOperasionalTagihanBbmBulkUploadService, OperasionalTagihanBbmBulkUploadService>();
 builder.Services.AddScoped<IOperasionalTagihanKwhUmumBulkUploadService, OperasionalTagihanKwhUmumBulkUploadService>();
+builder.Services.AddScoped<IPerjalananDinasMobileService, PerjalananDinasMobileService>();
 
 // mobile
 builder.Services.AddScoped<IDcuService, DcuService>();
