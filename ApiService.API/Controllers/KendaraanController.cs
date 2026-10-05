@@ -42,9 +42,9 @@ namespace ApiService.API.Controllers
 
         [HttpGet("lookup")]
         [RequirePermission("kendaraan.read")]
-        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] string? pejabatId, [FromQuery] bool withoutRfid  = false, [FromQuery] bool activeOnly = true)
+        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] string? pejabatId, [FromQuery] bool withoutRfid = false, [FromQuery] bool activeOnly = true)
         {
-            var result = await _kendaraanService.GetLookupAsync(search, activeOnly);
+            var result = await _kendaraanService.GetLookupAsync(search, pejabatId, withoutRfid, activeOnly);
             return Ok(result);
         }
 
