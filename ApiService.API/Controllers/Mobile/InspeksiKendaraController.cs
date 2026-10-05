@@ -47,9 +47,11 @@ namespace ApiService.API.Controllers.Mobile
         [RequirePermission("inspeksi.read")]
         public async Task<IActionResult> GetKendaraanLookup(
             [FromQuery] string? search,
+            [FromQuery] string? pejabatId,
+            [FromQuery] bool withoutRfid = false,
             [FromQuery] bool activeOnly = true)
         {
-            var result = await _kendaraanService.GetLookupAsync(search, activeOnly);
+            var result = await _kendaraanService.GetLookupAsync(search, pejabatId, withoutRfid, activeOnly);
             return StatusCode(result.StatusCode, result);
         }
 
