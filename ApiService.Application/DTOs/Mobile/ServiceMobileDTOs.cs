@@ -160,4 +160,34 @@ namespace ApiService.Application.DTOs.Mobile
         public string? Keterangan { get; set; }
         public int SortOrder { get; set; }
     }
+
+    // =========================================================================
+    // =================== Perjalanan Dinas DTOs ===================
+    // =========================================================================
+
+    public class CreatePerjalananDinasMobileRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string BulanTahun { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+    }
+
+    public class UpdatePerjalananDinasMobileRequest
+    {
+        public string PekerjaId { get; set; } = string.Empty;
+        public string BulanTahun { get; set; } = string.Empty;
+        public string PeriodeId { get; set; } = string.Empty;
+        public decimal TotalBiayaDinas { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class PerjalananDinasMobileFilterRequest
+    {
+        public string? Search { get; set; }
+        public string? PeriodeId { get; set; }
+        public bool? IsActive { get; set; }
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+    }
 }
