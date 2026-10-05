@@ -28,8 +28,8 @@ namespace ApiService.API.Controllers
             ILogger<KendaraanController> logger)
         {
             _kendaraanService = kendaraanService;
-            _currentUser      = currentUser;
-            _logger           = logger;
+            _currentUser = currentUser;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -42,7 +42,7 @@ namespace ApiService.API.Controllers
 
         [HttpGet("lookup")]
         [RequirePermission("kendaraan.read")]
-        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] bool activeOnly = true)
+        public async Task<IActionResult> GetLookup([FromQuery] string? search, [FromQuery] string? pejabatId, [FromQuery] bool withoutRfid  = false, [FromQuery] bool activeOnly = true)
         {
             var result = await _kendaraanService.GetLookupAsync(search, activeOnly);
             return Ok(result);
